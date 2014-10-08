@@ -52,10 +52,11 @@ def index():
 
         payload = json.loads(request.data)
         repo_meta = {
-	    'name': payload['repository']['name'],
-	    'owner': payload['repository']['owner']['name'],
+	    'name': payload['repository'].get('name')
 	    }
-	match = re.match(r"refs/heads/(?P<branch>.*)", payload['ref'])
+        repo_meta['owner'] = payload['repository']['owner'].get('name', payload['repository']['owner'].get('login'))
+
+	match = re.match(r"refs/heads/(?P<branch>.*)", payload.get('ref', ''))
 	if match:
 	    repo_meta['branch'] = match.groupdict()['branch']
         repo = repos.get('{owner}/{name}'.format(**repo_meta), None)
