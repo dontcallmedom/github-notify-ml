@@ -20,6 +20,7 @@ app = Flask(__name__)
 DEFAULT_FROM="sysbot+gh@w3.org"
 HOST="0.0.0.0"
 SMTP_HOST="localhost"
+LOG_FILE="log"
 
 def validate_repos():
     # TODO: Check that all configured repos have events with matching templates?
@@ -57,20 +58,18 @@ def index():
 	match = re.match(r"refs/heads/(?P<branch>.*)", payload['ref'])
 	if match:
 	    repo_meta['branch'] = match.groupdict()['branch']
-	    repo = repos.get('{owner}/{name}/branch:{branch}'.format(**repo_meta), None)
-        else:
-	    repo = repos.get('{owner}/{name}'.format(**repo_meta), None)
+        repo = repos.get('{owner}/{name}'.format(**repo_meta), None)
         if repo and repo.get('email', None):
             event = request.headers.get('X-GitHub-Event', None)
-            if payload.get("action", false):
+            if payload.get("action", False):
                 event = event + "." + payload['action']
-            if event not in repo['events']:
+            if event not in repo['events'] and event not in repo['branches'].get(repo_meta['branch'], []):
                 return json.dumps({'msg': 'event type %s not managed for %s' % (event, '{owner}/{name}'.format(**repo_meta)) })
             try:
-                template = io.open("templates/repos/{owner}/{name}/%s".format(**repo_meta) % event)
+                template = io.open("templates/repos/{owner}/{name}/%s".format(**repo_meta) % event).read()
             except IOError:
                 try:
-                    template = io.open("templates/generic/%s" % event)
+                    template = io.open("templates/generic/%s" % event).read()
                 except IOError:
                     return json.dumps({'msg': 'no template defined for event %s' % event})
             body = pystache.render(template, payload)
@@ -85,6 +84,7 @@ def index():
             s = smtplib.SMTP(SMTP_HOST)
             s.sendmail(frum, [too], msg.as_string())
             s.quit()
+            return json.dumps({'msg': 'mail sent to %s with subject %s' % (too, subject)})
         return 'OK'
 
 if __name__ == "__main__":
@@ -97,4 +97,9 @@ if __name__ == "__main__":
     if os.environ.get('USE_PROXYFIX', None) == 'true':
 	from werkzeug.contrib.fixers import ProxyFix
 	app.wsgi_app = ProxyFix(app.wsgi_app)
+    import logging
+    from logging.handlers import RotatingFileHandler
+    handler = RotatingFileHandler(LOG_FILE, maxBytes=10000, backupCount=1)
+    handler.setLevel(logging.INFO)
+    app.logger.addHandler(handler)
     app.run(host='0.0.0.0', port=port_number, debug=is_dev)
