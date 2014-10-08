@@ -9,10 +9,22 @@ import json
 import subprocess
 import requests
 import ipaddress
+import smtplib
+from email.mime.text import MIMEText
 from flask import Flask, request, abort
+import pystache
 
 app = Flask(__name__)
 
+# TODO: move to some general config
+DEFAULT_FROM="sysbot+gh@w3.org"
+HOST="0.0.0.0"
+SMTP_HOST="localhost"
+
+def validate_repos():
+    # TODO: Check that all configured repos have events with matching templates?
+    # that they all have an email.to field?
+    pass
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
@@ -31,10 +43,9 @@ def index():
         else:
             abort(403)
 
+
         if request.headers.get('X-GitHub-Event') == "ping":
             return json.dumps({'msg': 'Hi!'})
-        if request.headers.get('X-GitHub-Event') != "push":
-	    return json.dumps({'msg': "wrong event type"})
 
         repos = json.loads(io.open('repos.json', 'r').read())
 
@@ -49,17 +60,35 @@ def index():
 	    repo = repos.get('{owner}/{name}/branch:{branch}'.format(**repo_meta), None)
         else:
 	    repo = repos.get('{owner}/{name}'.format(**repo_meta), None)
-        if repo and repo.get('path', None):
-	    if repo.get('action', None):
-	        for action in repo['action']:
-		    subprocess.Popen(action,
-                             cwd=repo['path'])
-	    else:
-		subprocess.Popen(["git", "pull", "origin", "master"],
-                             cwd=repo['path'])
+        if repo and repo.get('email', None):
+            event = request.headers.get('X-GitHub-Event', None)
+            if payload.get("action", false):
+                event = event + "." + payload['action']
+            if event not in repo['events']:
+                return json.dumps({'msg': 'event type %s not managed for %s' % (event, '{owner}/{name}'.format(**repo_meta)) })
+            try:
+                template = io.open("templates/repos/{owner}/{name}/%s".format(**repo_meta) % event)
+            except IOError:
+                try:
+                    template = io.open("templates/generic/%s" % event)
+                except IOError:
+                    return json.dumps({'msg': 'no template defined for event %s' % event})
+            body = pystache.render(template, payload)
+            subject, dummy, body = body.partition('\n')
+            msg = MIMEText(body)
+            frum = repo.get("email", {}).get("from", DEFAULT_FROM)
+            too = repo.get("email", {}).get("to")
+            msg['From'] = frum
+            msg['To'] = too
+            msg['Subject'] = subject
+
+            s = smtplib.SMTP(SMTP_HOST)
+            s.sendmail(frum, [too], msg.as_string())
+            s.quit()
         return 'OK'
 
 if __name__ == "__main__":
+    validate_repos()
     try:
         port_number = int(sys.argv[1])
     except:
