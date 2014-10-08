@@ -1,0 +1,6 @@
+{{size}} commits pushed to {{repository.full_name}} by {{pusher.name}}
+
+The following {{size}} commits were just pushed to {{repository.full_name}}:
+{{#commits}}
+* {{message}} by {{author.name}} -- see {{url}}
+{{/commits}}
