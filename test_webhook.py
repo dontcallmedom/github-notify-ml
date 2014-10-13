@@ -65,7 +65,16 @@ class SendEmailGithubTests(unittest.TestCase):
     def test_issue_comment_notif(self, mock_smtp):
         self.do_operation("issue_comment", "tests/issue-comment-notif.json", "tests/issue-comment-notif.msg", mock_smtp)
 
-
+    @responses.activate
+    @patch("smtplib.SMTP")
+    def test_unavailable_template(self, mock_smtp):
+        data = io.open("tests/push-notif.json").read()
+        rv = self.app.post('/', headers=[('X-GitHub-Event', "foobar")], environ_base={'REMOTE_ADDR': '127.0.0.1'}, data=data)
+        instance = mock_smtp.return_value
+        import sys
+        sys.stderr.write(str(rv.status_code))
+        assert rv.status_code == 400
+        self.assertEqual(instance.sendmail.call_count, 0)
 
 if __name__ == '__main__':
     unittest.main()

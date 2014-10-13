@@ -1,6 +1,6 @@
 {
  "dontcallmedom/github-notify-ml": {
-    "events": ["issues.opened", "issues.reopened", "issues.closed", "issue_comment.created", "pullrequest.opened", "pullrequest.closed", "pullrequest.reopened", "pullrequest.synchronized"],
+    "events": ["issues.opened", "issues.reopened", "issues.closed", "issue_comment.created", "pullrequest.opened", "pullrequest.closed", "pullrequest.reopened", "pullrequest.synchronized", "foobar"],
     "branches": {
       "master": ["push"]
     },

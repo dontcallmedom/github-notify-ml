@@ -89,7 +89,7 @@ def index():
                 try:
                     template = io.open("templates/generic/%s" % event).read()
                 except IOError:
-                    return json.dumps({'msg': 'no template defined for event %s' % event})
+                    return (json.dumps({'msg': 'no template defined for event %s' % event}), 400, {})
             body = pystache.render(template, payload)
             subject, dummy, body = body.partition('\n')
             msg = MIMENonMultipart("text", "plain", charset="utf-8")
