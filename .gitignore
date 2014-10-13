@@ -1,3 +1,4 @@
 log
 *.pyc
 repos.json
+instance/config.py

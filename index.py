@@ -15,16 +15,12 @@ import email.charset
 from flask import Flask, request, abort
 import pystache
 
-app = Flask(__name__)
+app = Flask(__name__, instance_relative_config=True)
+app.config.from_object('config')
+app.config.from_pyfile('config.py')
 
 cs=email.charset.Charset('utf-8')
 cs.body_encoding = email.charset.QP
-
-# TODO: move to some general config
-DEFAULT_FROM="sysbot+gh@w3.org"
-HOST="0.0.0.0"
-SMTP_HOST="localhost"
-LOG_FILE="log"
 
 def validate_repos():
     # TODO: Check that all configured repos have events with matching templates?
@@ -98,7 +94,7 @@ def index():
             subject, dummy, body = body.partition('\n')
             msg = MIMENonMultipart("text", "plain", charset="utf-8")
             msg.set_payload(body, charset=cs)
-            frum = repo.get("email", {}).get("from", DEFAULT_FROM)
+            frum = repo.get("email", {}).get("from", app.config["EMAIL_FROM"])
             msgid = "<%s-%s-%s>" % (event, event_id(event, payload), frum)
             (ref_event, ref_id) = refevent(event, payload)
             inreplyto = None
@@ -106,8 +102,13 @@ def index():
                 inreplyto = "<%s-%s-%s>" % (ref_event, ref_id, frum)
 
             too = repo.get("email", {}).get("to")
-
-            frum_name = requests.get(payload['sender']['url']).json()['name']
+            headers = {}
+            frum_name = ""
+            if app.config["GH_OAUTH_TOKEN"]:
+                headers['Authorization']="token %s" % (app.config["GH_OAUTH_TOKEN"])
+                frum_name = requests.get(payload['sender']['url'],
+                                     headers=headers
+                                     ).json()['name']
 
             msg['From'] = u"%s via GitHub <%s>" % (frum_name, frum)
             msg['To'] = too
@@ -115,7 +116,7 @@ def index():
             msg['Message-ID'] = msgid
             if inreplyto:
                 msg['In-Reply-To'] = inreplyto
-            s = smtplib.SMTP(SMTP_HOST)
+            s = smtplib.SMTP(app.config["SMTP_HOST"])
             s.sendmail(frum, [too], msg.as_string())
             s.quit()
             return json.dumps({'msg': 'mail sent to %s with subject %s' % (too, subject)})
@@ -125,17 +126,13 @@ if __name__ == "__main__":
     validate_repos()
     import logging
     from logging.handlers import RotatingFileHandler
-    handler = RotatingFileHandler(LOG_FILE, maxBytes=10000, backupCount=1)
+    handler = RotatingFileHandler(app.config["LOG"], maxBytes=10000, backupCount=1)
     handler.setLevel(logging.INFO)
     app.logger.addHandler(handler)
     try:
         port_number = int(sys.argv[1])
     except:
-        port_number = 80
+        port_number = app.config["HTTP_PORT"]
     is_dev = os.environ.get('ENV', None) == 'dev'
-    if os.environ.get('USE_PROXYFIX', None) == 'true':
-	from werkzeug.contrib.fixers import ProxyFix
-	app.wsgi_app = ProxyFix(app.wsgi_app)
-
     app.config["repos"] = "repos.json"
-    app.run(host='0.0.0.0', port=port_number, debug=is_dev)
+    app.run(host=app.config["HTTP_HOST"], port=port_number, debug=is_dev)
