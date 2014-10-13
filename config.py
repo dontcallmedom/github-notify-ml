@@ -8,7 +8,7 @@ LOG="log"
 SMTP_HOST="localhost"
 EMAIL_FROM="test@localhost"
 
-# Github Access (to enable setting proper "From" in notifs
+# Github Access (to enable setting proper "From" in notifs)
 # GH_OAUTH_TOKEN = 
 
 
