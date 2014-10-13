@@ -1,0 +1,12 @@
+{
+ "dontcallmedom/github-notify-ml": {
+    "events": ["issues.opened", "issues.reopened", "issues.closed", "issue_comment.created", "pullrequest.opened", "pullrequest.closed", "pullrequest.reopened", "pullrequest.synchronized"],
+    "branches": {
+      "master": ["push"]
+    },
+    "email": {
+        "to":"dom@localhost",
+        "from":"test@localhost"
+    }
+  }
+}
