@@ -15,6 +15,8 @@ class SendEmailGithubTests(unittest.TestCase):
         self.app = app.test_client()
         responses.add(responses.GET, 'https://api.github.com/meta',
                       body='{"hooks":["127.0.0.0/8"]}', content_type='application/json')
+        responses.add(responses.GET, 'https://api.github.com/users/dontcallmedom',
+                      body='{"name":"Dominique Hazael-Massieux"}', content_type='application/json')
 
 
     def test_ignore_get(self):
@@ -59,7 +61,7 @@ class SendEmailGithubTests(unittest.TestCase):
 
     @patch("smtplib.SMTP")
     @responses.activate
-    def test_issue_notif(self, mock_smtp):
+    def test_issue_comment_notif(self, mock_smtp):
         self.do_operation("issue_comment", "tests/issue-comment-notif.json", "tests/issue-comment-notif.msg", mock_smtp)
 
 

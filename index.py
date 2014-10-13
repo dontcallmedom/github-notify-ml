@@ -10,11 +10,15 @@ import subprocess
 import requests
 import ipaddress
 import smtplib
-from email.mime.text import MIMEText
+from email.mime.nonmultipart import MIMENonMultipart
+import email.charset
 from flask import Flask, request, abort
 import pystache
 
 app = Flask(__name__)
+
+cs=email.charset.Charset('utf-8')
+cs.body_encoding = email.charset.QP
 
 # TODO: move to some general config
 DEFAULT_FROM="sysbot+gh@w3.org"
@@ -92,7 +96,8 @@ def index():
                     return json.dumps({'msg': 'no template defined for event %s' % event})
             body = pystache.render(template, payload)
             subject, dummy, body = body.partition('\n')
-            msg = MIMEText(body)
+            msg = MIMENonMultipart("text", "plain", charset="utf-8")
+            msg.set_payload(body, charset=cs)
             frum = repo.get("email", {}).get("from", DEFAULT_FROM)
             msgid = "<%s-%s-%s>" % (event, event_id(event, payload), frum)
             (ref_event, ref_id) = refevent(event, payload)
@@ -102,14 +107,15 @@ def index():
 
             too = repo.get("email", {}).get("to")
 
-            msg['From'] = frum
+            frum_name = requests.get(payload['sender']['url']).json()['name']
+
+            msg['From'] = u"%s via GitHub <%s>" % (frum_name, frum)
             msg['To'] = too
             msg['Subject'] = subject
             msg['Message-ID'] = msgid
             if inreplyto:
                 msg['In-Reply-To'] = inreplyto
             s = smtplib.SMTP(SMTP_HOST)
-            sys.stderr.write(msg.as_string())
             s.sendmail(frum, [too], msg.as_string())
             s.quit()
             return json.dumps({'msg': 'mail sent to %s with subject %s' % (too, subject)})
