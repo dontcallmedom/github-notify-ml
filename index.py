@@ -44,24 +44,21 @@ def index():
         else:
             abort(403)
 
-
-        if request.headers.get('X-GitHub-Event') == "ping":
+        event = request.headers.get('X-GitHub-Event', None)
+        if event == "ping":
             return json.dumps({'msg': 'Hi!'})
 
-        repos = json.loads(io.open('repos.json', 'r').read())
-
+        repos = json.loads(io.open(app.config['repos'], 'r').read())
         payload = json.loads(request.data)
         repo_meta = {
 	    'name': payload['repository'].get('name')
 	    }
         repo_meta['owner'] = payload['repository']['owner'].get('name', payload['repository']['owner'].get('login'))
-
 	match = re.match(r"refs/heads/(?P<branch>.*)", payload.get('ref', ''))
 	if match:
 	    repo_meta['branch'] = match.groupdict()['branch']
         repo = repos.get('{owner}/{name}'.format(**repo_meta), None)
         if repo and repo.get('email', None):
-            event = request.headers.get('X-GitHub-Event', None)
             if payload.get("action", False):
                 event = event + "." + payload['action']
             if event not in repo['events'] and event not in repo['branches'].get(repo_meta['branch'], []):
@@ -78,10 +75,10 @@ def index():
             msg = MIMEText(body)
             frum = repo.get("email", {}).get("from", DEFAULT_FROM)
             too = repo.get("email", {}).get("to")
+
             msg['From'] = frum
             msg['To'] = too
             msg['Subject'] = subject
-
             s = smtplib.SMTP(SMTP_HOST)
             s.sendmail(frum, [too], msg.as_string())
             s.quit()
@@ -90,6 +87,11 @@ def index():
 
 if __name__ == "__main__":
     validate_repos()
+    import logging
+    from logging.handlers import RotatingFileHandler
+    handler = RotatingFileHandler(LOG_FILE, maxBytes=10000, backupCount=1)
+    handler.setLevel(logging.INFO)
+    app.logger.addHandler(handler)
     try:
         port_number = int(sys.argv[1])
     except:
@@ -98,9 +100,6 @@ if __name__ == "__main__":
     if os.environ.get('USE_PROXYFIX', None) == 'true':
 	from werkzeug.contrib.fixers import ProxyFix
 	app.wsgi_app = ProxyFix(app.wsgi_app)
-    import logging
-    from logging.handlers import RotatingFileHandler
-    handler = RotatingFileHandler(LOG_FILE, maxBytes=10000, backupCount=1)
-    handler.setLevel(logging.INFO)
-    app.logger.addHandler(handler)
+
+    app.config["repos"] = "repos.json"
     app.run(host='0.0.0.0', port=port_number, debug=is_dev)
