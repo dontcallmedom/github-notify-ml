@@ -27,6 +27,26 @@ def validate_repos():
     # that they all have an email.to field?
     pass
 
+def event_id(event, payload):
+    if event.split(".")[0] == "issues":
+        return payload["issue"]["id"]
+    elif event.split(".")[0] == "issue_comment":
+        return payload["comment"]["id"]
+    elif event == "push":
+        return payload["head_commit"]["id"]
+    elif event.split(".")[0] == "pull_request":
+        return payload["pull_request"]["id"]
+
+def refevent(event, payload):
+    if event in ["issues.reopened", "issues.closed", "issue_comment.created"]:
+        return ("issues.opened", payload["issue"]["id"])
+    elif event in ["pull_request.closed", "pull_request.reopened",
+                   "pull_request.synchronized",
+                   "pull_request_review_comment.created"]:
+        return ("pull_request.opened", payload["pull_request"]["id"])
+    return (None,None)
+
+
 @app.route("/", methods=['GET', 'POST'])
 def index():
     # Store the IP address blocks that github uses for hook requests.
@@ -74,11 +94,20 @@ def index():
             subject, dummy, body = body.partition('\n')
             msg = MIMEText(body)
             frum = repo.get("email", {}).get("from", DEFAULT_FROM)
+            msgid = "<%s-%s-%s>" % (event, event_id(event, payload), frum)
+            (ref_event, ref_id) = refevent(event, payload)
+            inreplyto = None
+            if ref_event and ref_id:
+                inreplyto = "<%s-%s-%s>" % (ref_event, ref_id, frum)
+
             too = repo.get("email", {}).get("to")
 
             msg['From'] = frum
             msg['To'] = too
             msg['Subject'] = subject
+            msg['Message-ID'] = msgid
+            if inreplyto:
+                msg['In-Reply-To'] = inreplyto
             s = smtplib.SMTP(SMTP_HOST)
             s.sendmail(frum, [too], msg.as_string())
             s.quit()
