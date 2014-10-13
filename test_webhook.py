@@ -33,20 +33,29 @@ class SendEmailGithubTests(unittest.TestCase):
         rv = self.app.post('/', headers=[('X-GitHub-Event', 'ping')], environ_base={'REMOTE_ADDR': '128.0.0.1'})
         assert rv.status_code == 403
 
-    @patch("smtplib.SMTP")
-    @responses.activate
-    def test_push_notif(self, mock_smtp):
-        data = io.open('tests/push-notif.json').read()
-        rv = self.app.post('/', headers=[('X-GitHub-Event', 'push')], environ_base={'REMOTE_ADDR': '127.0.0.1'}, data=data)
+
+    def do_operation(self, operation, jsonf, msgf, mock_smtp):
+        data = io.open(jsonf).read()
+        rv = self.app.post('/', headers=[('X-GitHub-Event', operation)], environ_base={'REMOTE_ADDR': '127.0.0.1'}, data=data)
         instance = mock_smtp.return_value
         assert rv.status_code == 200
         self.assertEqual(instance.sendmail.call_count, 1)
         import sys
-        msg = io.open("tests/push-notif.msg").read()
+        msg = io.open(msgf).read()
         self.assertEqual(
                 instance.sendmail.mock_calls,
                 [call("test@localhost", ["dom@localhost"], msg)]
             )
+
+    @patch("smtplib.SMTP")
+    @responses.activate
+    def test_push_notif(self, mock_smtp):
+        self.do_operation("push", "tests/push-notif.json", "tests/push-notif.msg", mock_smtp)
+
+    @patch("smtplib.SMTP")
+    @responses.activate
+    def test_issue_notif(self, mock_smtp):
+        self.do_operation("issues", "tests/issue-notif.json", "tests/issue-notif.msg", mock_smtp)
 
 
 
