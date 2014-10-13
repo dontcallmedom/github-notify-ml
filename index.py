@@ -104,13 +104,15 @@ def index():
             too = repo.get("email", {}).get("to")
             headers = {}
             frum_name = ""
-            if app.config["GH_OAUTH_TOKEN"]:
+            readable_frum = frum
+            if app.config.get("GH_OAUTH_TOKEN", False):
                 headers['Authorization']="token %s" % (app.config["GH_OAUTH_TOKEN"])
                 frum_name = requests.get(payload['sender']['url'],
                                      headers=headers
                                      ).json()['name']
+                readable_frum = u"%s via GitHub <%s>" % (frum_name, frum)
 
-            msg['From'] = u"%s via GitHub <%s>" % (frum_name, frum)
+            msg['From'] = readable_frum
             msg['To'] = too
             msg['Subject'] = subject
             msg['Message-ID'] = msgid

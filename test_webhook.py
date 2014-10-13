@@ -12,6 +12,7 @@ import io
 class SendEmailGithubTests(unittest.TestCase):
     def setUp(self):
         app.config['repos']='tests/repos.json'
+        app.config['GH_OAUTH_TOKEN']='foo'
         self.app = app.test_client()
         responses.add(responses.GET, 'https://api.github.com/meta',
                       body='{"hooks":["127.0.0.0/8"]}', content_type='application/json')
