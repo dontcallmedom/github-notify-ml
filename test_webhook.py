@@ -57,6 +57,11 @@ class SendEmailGithubTests(unittest.TestCase):
     def test_issue_notif(self, mock_smtp):
         self.do_operation("issues", "tests/issue-notif.json", "tests/issue-notif.msg", mock_smtp)
 
+    @patch("smtplib.SMTP")
+    @responses.activate
+    def test_issue_notif(self, mock_smtp):
+        self.do_operation("issue_comment", "tests/issue-comment-notif.json", "tests/issue-comment-notif.msg", mock_smtp)
+
 
 
 if __name__ == '__main__':

@@ -109,6 +109,7 @@ def index():
             if inreplyto:
                 msg['In-Reply-To'] = inreplyto
             s = smtplib.SMTP(SMTP_HOST)
+            sys.stderr.write(msg.as_string())
             s.sendmail(frum, [too], msg.as_string())
             s.quit()
             return json.dumps({'msg': 'mail sent to %s with subject %s' % (too, subject)})
