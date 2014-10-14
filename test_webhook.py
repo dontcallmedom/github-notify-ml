@@ -11,6 +11,12 @@ import io
 
 class SendEmailGithubTests(unittest.TestCase):
     def setUp(self):
+        import logging, sys
+        from logging import StreamHandler
+        handler = StreamHandler(sys.stderr)
+        handler.setLevel(logging.INFO)
+        app.logger.addHandler(handler)
+
         app.config['repos']='tests/repos.json'
         app.config['GH_OAUTH_TOKEN']='foo'
         self.app = app.test_client()
