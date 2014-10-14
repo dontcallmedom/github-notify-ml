@@ -22,9 +22,21 @@ app.config.from_pyfile('config.py')
 cs=email.charset.Charset('utf-8')
 cs.body_encoding = email.charset.QP
 
+class InvalidConfiguration(Exception):
+    pass
+
 def validate_repos():
     # TODO: Check that all configured repos have events with matching templates?
     # that they all have an email.to field?
+    repos = json.loads(io.open(app.config['repos'], 'r').read())
+    import os.path
+    for (repo,data) in repos.iteritems():
+        for e in data["events"]:
+            generic_template = app.config['TEMPLATES_DIR'] + '/generic/' + e
+            specific_template = app.config['TEMPLATES_DIR'] + '/repos/' + repo + '/' + e
+            if not (os.path.isfile(generic_template)
+            or os.path.isfile(specific_template)):
+                raise InvalidConfiguration("No template matching event %s in %s (looked at %s and %s)" % (e, repo, generic_template, specific_template))
     pass
 
 def event_id(event, payload):
@@ -109,10 +121,10 @@ def index():
             if event not in repo['events'] and event not in repo['branches'].get(repo_meta['branch'], []):
                 return json.dumps({'msg': 'event type %s not managed for %s' % (event, '{owner}/{name}'.format(**repo_meta)) })
             try:
-                template = io.open("templates/repos/{owner}/{name}/%s".format(**repo_meta) % event).read()
+                template = io.open(app.config["TEMPLATES_DIR"] + "/repos/{owner}/{name}/%s".format(**repo_meta) % event).read()
             except IOError:
                 try:
-                    template = io.open("templates/generic/%s" % event).read()
+                    template = io.open(app.config["TEMPLATES_DIR"] + "/generic/%s" % event).read()
                 except IOError:
                     return (json.dumps({'msg': 'no template defined for event %s' % event}), 400, {})
             body = pystache.render(template, payload)
@@ -153,6 +165,7 @@ def index():
         return 'OK'
 
 if __name__ == "__main__":
+    app.config["repos"] = "repos.json"
     validate_repos()
     import logging
     from logging.handlers import RotatingFileHandler
@@ -164,5 +177,4 @@ if __name__ == "__main__":
     except:
         port_number = app.config["HTTP_PORT"]
     is_dev = os.environ.get('ENV', None) == 'dev'
-    app.config["repos"] = "repos.json"
     app.run(host=app.config["HTTP_HOST"], port=port_number, debug=is_dev)
