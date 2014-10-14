@@ -37,6 +37,31 @@ def event_id(event, payload):
     elif event.split(".")[0] == "pull_request":
         return payload["pull_request"]["id"]
 
+def event_timestamp(event, payload):
+    def timestamp(date):
+        from dateutil import parser
+        import calendar
+        try:
+            return calendar.timegm(parser.parse(date).utctimetuple())
+        except:
+            return date
+    ts = None
+    if event == "push":
+        ts = payload["repository"]["pushed_at"]
+    elif event == "issue_comment.created":
+        ts = payload["comment"]["created_at"]
+    elif event.split(".")[0] in ["issues", "pull_request"]:
+        action = event.split(".")[1]
+        key = "issue" if event.split(".")[0] == "issues" else "pull_request"
+        if action == "opened":
+            ts = payload[key]["created_at"]
+        elif action == "closed":
+            ts = payload[key]["closed_at"]
+        elif action == "reopened" or action == "synchronize":
+            ts = payload[key]["updated_at"]
+    if ts:
+        return timestamp(ts)
+
 def refevent(event, payload):
     if event in ["issues.reopened", "issues.closed", "issue_comment.created"]:
         return ("issues.opened", payload["issue"]["id"])
@@ -95,11 +120,14 @@ def index():
             msg = MIMENonMultipart("text", "plain", charset="utf-8")
             msg.set_payload(body, charset=cs)
             frum = repo.get("email", {}).get("from", app.config["EMAIL_FROM"])
-            msgid = "<%s-%s-%s>" % (event, event_id(event, payload), frum)
+            msgid = "<%s-%s-%s-%s>" % (event, event_id(event, payload),
+                                       event_timestamp(event, payload), frum)
             (ref_event, ref_id) = refevent(event, payload)
             inreplyto = None
             if ref_event and ref_id:
-                inreplyto = "<%s-%s-%s>" % (ref_event, ref_id, frum)
+                inreplyto = "<%s-%s-%s-%s>" % (ref_event, ref_id,
+                                            event_timestamp(ref_event, payload),
+                                            frum)
 
             too = repo.get("email", {}).get("to")
             headers = {}
