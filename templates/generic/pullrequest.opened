@@ -1,0 +1,7 @@
+[{{repository.name}}] {{pull_request.title}}
+{{pull_request.user.login}} has just submitted a new pull request for {{repository.html_url}}:
+
+== {{{pull_request.title}}} ==
+{{{pull_request.body}}}
+
+See {{pull_request.html_url}}
