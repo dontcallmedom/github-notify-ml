@@ -15,9 +15,8 @@ import email.charset
 from flask import Flask, request, abort
 import pystache
 
-app = Flask(__name__, instance_relative_config=True)
-app.config.from_object('config')
-app.config.from_pyfile('config.py')
+app = { }
+app.config = json.loads(io.open('instance/config.json'))
 
 cs=email.charset.Charset('utf-8')
 cs.body_encoding = email.charset.QP
@@ -168,14 +167,6 @@ def serve_request():
 if __name__ == "__main__":
     app.config["repos"] = "repos.json"
     validate_repos()
-    import logging
-    from logging.handlers import RotatingFileHandler
-    handler = RotatingFileHandler(app.config["LOG"], maxBytes=10000, backupCount=1)
-    handler.setLevel(logging.INFO)
-    app.logger.addHandler(handler)
-    try:
-        port_number = int(sys.argv[1])
-    except:
-        port_number = app.config["HTTP_PORT"]
-    is_dev = os.environ.get('ENV', None) == 'dev'
-    app.run(host=app.config["HTTP_HOST"], port=port_number, debug=is_dev)
+    if os.environ.has_key('SCRIPT_NAME'):
+        serveRequest()
+

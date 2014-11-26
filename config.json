@@ -1,0 +1,9 @@
+{
+"SMTP_HOST":"localhost",
+"EMAIL_FROM":"test@localhost",
+"TEMPLATES_DIR":"templates",
+"GH_OAUTH_TOKEN":""
+}
+
+
+
