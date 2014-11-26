@@ -1,4 +1,4 @@
-[{{repository.name}}] {{pull_request.title}}
+[{{repository.name}}] Pull Request: {{pull_request.title}}
 {{pull_request.user.login}} has just submitted a new pull request for {{repository.html_url}}:
 
 == {{{pull_request.title}}} ==
