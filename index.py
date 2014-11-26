@@ -15,7 +15,7 @@ import email.charset
 import pystache
 
 app = { }
-app.config = json.loads(io.open('instance/config.json').read())
+app["config"] = json.loads(io.open('instance/config.json').read())
 
 cs=email.charset.Charset('utf-8')
 cs.body_encoding = email.charset.QP
@@ -26,12 +26,12 @@ class InvalidConfiguration(Exception):
 def validate_repos():
     # TODO: Check that all configured repos have events with matching templates?
     # that they all have an email.to field?
-    repos = json.loads(io.open(app.config['repos'], 'r').read())
+    repos = json.loads(io.open(app["config"]['repos'], 'r').read())
     import os.path
     for (repo,data) in repos.iteritems():
         for e in data["events"]:
-            generic_template = app.config['TEMPLATES_DIR'] + '/generic/' + e
-            specific_template = app.config['TEMPLATES_DIR'] + '/repos/' + repo + '/' + e
+            generic_template = app["config"]['TEMPLATES_DIR'] + '/generic/' + e
+            specific_template = app["config"]['TEMPLATES_DIR'] + '/repos/' + repo + '/' + e
             if not (os.path.isfile(generic_template)
             or os.path.isfile(specific_template)):
                 raise InvalidConfiguration("No template matching event %s in %s (looked at %s and %s)" % (e, repo, generic_template, specific_template))
@@ -104,7 +104,7 @@ def serve_request():
         if event == "ping":
             return json.dumps({'msg': 'Hi!'})
 
-        repos = json.loads(io.open(app.config['repos'], 'r').read())
+        repos = json.loads(io.open(app["config"]['repos'], 'r').read())
         payload = json.loads(sys.stdin.read())
         repo_meta = {
 	    'name': payload['repository'].get('name')
@@ -120,17 +120,17 @@ def serve_request():
             if event not in repo['events'] and (not repo_meta.has_key("branch") or event not in repo['branches'].get(repo_meta['branch'], [])):
                 return json.dumps({'msg': 'event type %s not managed for %s' % (event, '{owner}/{name}'.format(**repo_meta)) })
             try:
-                template = io.open(app.config["TEMPLATES_DIR"] + "/repos/{owner}/{name}/%s".format(**repo_meta) % event).read()
+                template = io.open(app["config"]["TEMPLATES_DIR"] + "/repos/{owner}/{name}/%s".format(**repo_meta) % event).read()
             except IOError:
                 try:
-                    template = io.open(app.config["TEMPLATES_DIR"] + "/generic/%s" % event).read()
+                    template = io.open(app["config"]["TEMPLATES_DIR"] + "/generic/%s" % event).read()
                 except IOError:
                     return (json.dumps({'msg': 'no template defined for event %s' % event}), 400, {})
             body = pystache.render(template, payload)
             subject, dummy, body = body.partition('\n')
             msg = MIMENonMultipart("text", "plain", charset="utf-8")
             msg.set_payload(body, charset=cs)
-            frum = repo.get("email", {}).get("from", app.config["EMAIL_FROM"])
+            frum = repo.get("email", {}).get("from", app["config"]["EMAIL_FROM"])
             msgid = "<%s-%s-%s-%s>" % (event, event_id(event, payload),
                                        event_timestamp(event, payload), frum)
             (ref_event, ref_id) = refevent(event, payload)
@@ -144,8 +144,8 @@ def serve_request():
             headers = {}
             frum_name = ""
             readable_frum = frum
-            if app.config.get("GH_OAUTH_TOKEN", False):
-                headers['Authorization']="token %s" % (app.config["GH_OAUTH_TOKEN"])
+            if app["config"].get("GH_OAUTH_TOKEN", False):
+                headers['Authorization']="token %s" % (app["config"]["GH_OAUTH_TOKEN"])
                 frum_name = requests.get(payload['sender']['url'],
                                      headers=headers
                                      ).json()['name']
@@ -157,14 +157,14 @@ def serve_request():
             msg['Message-ID'] = msgid
             if inreplyto:
                 msg['In-Reply-To'] = inreplyto
-            s = smtplib.SMTP(app.config["SMTP_HOST"])
+            s = smtplib.SMTP(app["config"]["SMTP_HOST"])
             s.sendmail(frum, [too], msg.as_string())
             s.quit()
             return json.dumps({'msg': 'mail sent to %s with subject %s' % (too, subject)})
         return 'OK'
 
 if __name__ == "__main__":
-    app.config["repos"] = "repos.json"
+    app["config"]["repos"] = "repos.json"
     validate_repos()
     if os.environ.has_key('SCRIPT_NAME'):
         serveRequest()
