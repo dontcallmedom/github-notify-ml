@@ -12,7 +12,6 @@ import ipaddress
 import smtplib
 from email.mime.nonmultipart import MIMENonMultipart
 import email.charset
-from flask import Flask, request, abort
 import pystache
 
 app = { }
