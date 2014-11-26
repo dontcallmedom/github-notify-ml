@@ -29,8 +29,8 @@ def validate_repos(config):
     import os.path
     for (repo,data) in repos.iteritems():
         for e in data["events"]:
-            generic_template = app["config"]['TEMPLATES_DIR'] + '/generic/' + e
-            specific_template = app["config"]['TEMPLATES_DIR'] + '/repos/' + repo + '/' + e
+            generic_template = config['TEMPLATES_DIR'] + '/generic/' + e
+            specific_template = config['TEMPLATES_DIR'] + '/repos/' + repo + '/' + e
             if not (os.path.isfile(generic_template)
             or os.path.isfile(specific_template)):
                 raise InvalidConfiguration("No template matching event %s defined in %s in %s (looked at %s and %s)" % (e, config['repos'], repo, generic_template, specific_template))
