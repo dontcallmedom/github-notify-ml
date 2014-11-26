@@ -15,7 +15,7 @@ import email.charset
 import pystache
 
 app = { }
-app.config = json.loads(io.open('instance/config.json'))
+app.config = json.loads(io.open('instance/config.json').read())
 
 cs=email.charset.Charset('utf-8')
 cs.body_encoding = email.charset.QP
