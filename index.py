@@ -89,8 +89,10 @@ def serveRequest():
     hook_blocks = requests.get('https://api.github.com/meta').json()['hooks']
 
     if request_method == 'GET':
-        return ' Nothing to see here, move along ...'
-
+        print "Content-Type: text/plain; charset=utf-8"
+        print
+        print ' Nothing to see here, move along ...'
+        return
     elif request_method == 'POST':
         # Check if the POST request if from github.com
         for block in hook_blocks:
@@ -102,8 +104,10 @@ def serveRequest():
 
         event = os.environ.get('HTTP_X_GITHUB_EVENT', None)
         if event == "ping":
-            return json.dumps({'msg': 'Hi!'})
-
+            print "Content-Type: application/json"
+            print
+            print json.dumps({'msg': 'Hi!'})
+            return
         repos = json.loads(io.open(app["config"]['repos'], 'r').read())
         payload = json.loads(sys.stdin.read())
         repo_meta = {
@@ -118,14 +122,22 @@ def serveRequest():
             if payload.get("action", False):
                 event = event + "." + payload['action']
             if event not in repo['events'] and (not repo_meta.has_key("branch") or event not in repo['branches'].get(repo_meta['branch'], [])):
-                return json.dumps({'msg': 'event type %s not managed for %s' % (event, '{owner}/{name}'.format(**repo_meta)) })
+                print "Status: 400 Unhandled event"
+                print "Content-Type: application/json"
+                print
+                print json.dumps({'msg': 'event type %s not managed for %s' % (event, '{owner}/{name}'.format(**repo_meta)) })
+                return
             try:
                 template = io.open(app["config"]["TEMPLATES_DIR"] + "/repos/{owner}/{name}/%s".format(**repo_meta) % event).read()
             except IOError:
                 try:
                     template = io.open(app["config"]["TEMPLATES_DIR"] + "/generic/%s" % event).read()
                 except IOError:
-                    return (json.dumps({'msg': 'no template defined for event %s' % event}), 400, {})
+                    print "Status: 500 No matching template"
+                    print "Content-Type: application/json"
+                    print
+                    print json.dumps({'msg': 'no template defined for event %s' % event})
+                    return
             body = pystache.render(template, payload)
             subject, dummy, body = body.partition('\n')
             msg = MIMENonMultipart("text", "plain", charset="utf-8")
@@ -160,8 +172,14 @@ def serveRequest():
             s = smtplib.SMTP(app["config"]["SMTP_HOST"])
             s.sendmail(frum, [too], msg.as_string())
             s.quit()
-            return json.dumps({'msg': 'mail sent to %s with subject %s' % (too, subject)})
-        return 'OK'
+            print "Content-Type: application/json"
+            print
+            print json.dumps({'msg': 'mail sent to %s with subject %s' % (too, subject)})
+            return
+        print "Content-Type: text/plain; charset=utf-8"
+        print
+        print 'OK'
+        return
 
 if __name__ == "__main__":
     app["config"]["repos"] = "repos.json"
