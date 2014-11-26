@@ -118,7 +118,7 @@ def index():
         if repo and repo.get('email', None):
             if payload.get("action", False):
                 event = event + "." + payload['action']
-            if event not in repo['events'] and event not in repo['branches'].get(repo_meta['branch'], []):
+            if event not in repo['events'] and (not repo_meta.has_key("branch") or event not in repo['branches'].get(repo_meta['branch'], []):
                 return json.dumps({'msg': 'event type %s not managed for %s' % (event, '{owner}/{name}'.format(**repo_meta)) })
             try:
                 template = io.open(app.config["TEMPLATES_DIR"] + "/repos/{owner}/{name}/%s".format(**repo_meta) % event).read()
