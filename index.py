@@ -84,29 +84,30 @@ def refevent(event, payload):
     return (None,None)
 
 
-@app.route("/", methods=['GET', 'POST'])
-def index():
+def serve_request():
+    request_method = os.environ.get('REQUEST_METHOD', "GET")
+    remote_addr = os.environ.get('REMOTE_ADDR')
     # Store the IP address blocks that github uses for hook requests.
     hook_blocks = requests.get('https://api.github.com/meta').json()['hooks']
 
-    if request.method == 'GET':
+    if request_method == 'GET':
         return ' Nothing to see here, move along ...'
 
-    elif request.method == 'POST':
+    elif request_method == 'POST':
         # Check if the POST request if from github.com
         for block in hook_blocks:
-            ip = ipaddress.ip_address(u'%s' % request.remote_addr)
+            ip = ipaddress.ip_address(u'%s' % remote_addr)
             if ipaddress.ip_address(ip) in ipaddress.ip_network(block):
                 break #the remote_addr is within the network range of github
         else:
             abort(403)
 
-        event = request.headers.get('X-GitHub-Event', None)
+        event = os.environ.get('HTTP_X_GITHUB_EVENT', None)
         if event == "ping":
             return json.dumps({'msg': 'Hi!'})
 
         repos = json.loads(io.open(app.config['repos'], 'r').read())
-        payload = json.loads(request.data)
+        payload = json.loads(sys.stdin.read())
         repo_meta = {
 	    'name': payload['repository'].get('name')
 	    }
