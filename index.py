@@ -84,7 +84,7 @@ def refevent(event, payload):
 
 def serveRequest():
     request_method = os.environ.get('REQUEST_METHOD', "GET")
-    remote_addr = os.environ.get('HTTP_X-FORWARDED-FOR', os.environ.get('REMOTE_ADDR'))
+    remote_addr = os.environ.get('HTTP_X_FORWARDED_FOR', os.environ.get('REMOTE_ADDR'))
     # Store the IP address blocks that github uses for hook requests.
     hook_blocks = requests.get('https://api.github.com/meta').json()['hooks']
 
