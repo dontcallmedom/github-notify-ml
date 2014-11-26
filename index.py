@@ -14,8 +14,7 @@ from email.mime.nonmultipart import MIMENonMultipart
 import email.charset
 import pystache
 
-app = { }
-app["config"] = json.loads(io.open('instance/config.json').read())
+config = json.loads(io.open('instance/config.json').read())
 
 cs=email.charset.Charset('utf-8')
 cs.body_encoding = email.charset.QP
@@ -23,10 +22,10 @@ cs.body_encoding = email.charset.QP
 class InvalidConfiguration(Exception):
     pass
 
-def validate_repos():
+def validate_repos(config):
     # TODO: Check that all configured repos have events with matching templates?
     # that they all have an email.to field?
-    repos = json.loads(io.open(app["config"]['repos'], 'r').read())
+    repos = json.loads(io.open(config['repos'], 'r').read())
     import os.path
     for (repo,data) in repos.iteritems():
         for e in data["events"]:
@@ -34,7 +33,7 @@ def validate_repos():
             specific_template = app["config"]['TEMPLATES_DIR'] + '/repos/' + repo + '/' + e
             if not (os.path.isfile(generic_template)
             or os.path.isfile(specific_template)):
-                raise InvalidConfiguration("No template matching event %s in %s (looked at %s and %s)" % (e, repo, generic_template, specific_template))
+                raise InvalidConfiguration("No template matching event %s defined in %s in %s (looked at %s and %s)" % (e, config['repos'], repo, generic_template, specific_template))
     pass
 
 def event_id(event, payload):
@@ -82,17 +81,17 @@ def refevent(event, payload):
     return (None,None)
 
 
-def serveRequest():
+def serveRequest(config, postbody):
     request_method = os.environ.get('REQUEST_METHOD', "GET")
     remote_addr = os.environ.get('HTTP_X_FORWARDED_FOR', os.environ.get('REMOTE_ADDR'))
     # Store the IP address blocks that github uses for hook requests.
     hook_blocks = requests.get('https://api.github.com/meta').json()['hooks']
+    output = ""
 
     if request_method == 'GET':
-        print "Content-Type: text/plain; charset=utf-8"
-        print
-        print ' Nothing to see here, move along ...'
-        return
+        output += "Content-Type: text/plain; charset=utf-8\n\n"
+        output += " Nothing to see here, move along ..."
+        return output
     elif request_method == 'POST':
         # Check if the POST request if from github.com
         for block in hook_blocks:
@@ -100,20 +99,18 @@ def serveRequest():
             if ipaddress.ip_address(ip) in ipaddress.ip_network(block):
                 break #the remote_addr is within the network range of github
         else:
-            print "Status: 403 Unrecognized IP"
-            print "Content-Type: application/json"
-            print
-            print json.dumps({'msg': 'Unrecognized IP address', 'ip': remote_addr})
-            return
+            output += "Status: 403 Unrecognized IP\n"
+            output += "Content-Type: application/json\n\n"
+            output += json.dumps({'msg': 'Unrecognized IP address', 'ip': remote_addr})
+            return output
 
         event = os.environ.get('HTTP_X_GITHUB_EVENT', None)
         if event == "ping":
-            print "Content-Type: application/json"
-            print
-            print json.dumps({'msg': 'Hi!'})
-            return
-        repos = json.loads(io.open(app["config"]['repos'], 'r').read())
-        payload = json.loads(sys.stdin.read())
+            output += "Content-Type: application/json\n\n"
+            output += json.dumps({'msg': 'Hi!'})
+            return output
+        repos = json.loads(io.open(config['repos'], 'r').read())
+        payload = json.loads(postbody)
         repo_meta = {
 	    'name': payload['repository'].get('name')
 	    }
@@ -126,27 +123,25 @@ def serveRequest():
             if payload.get("action", False):
                 event = event + "." + payload['action']
             if event not in repo['events'] and (not repo_meta.has_key("branch") or event not in repo['branches'].get(repo_meta['branch'], [])):
-                print "Status: 400 Unhandled event"
-                print "Content-Type: application/json"
-                print
-                print json.dumps({'msg': 'event type %s not managed for %s' % (event, '{owner}/{name}'.format(**repo_meta)) })
-                return
+                output += "Status: 400 Unhandled event\n"
+                output += "Content-Type: application/json\n\n"
+                output += json.dumps({'msg': 'event type %s not managed for %s' % (event, '{owner}/{name}'.format(**repo_meta)) })
+                return output
             try:
-                template = io.open(app["config"]["TEMPLATES_DIR"] + "/repos/{owner}/{name}/%s".format(**repo_meta) % event).read()
+                template = io.open(config["TEMPLATES_DIR"] + "/repos/{owner}/{name}/%s".format(**repo_meta) % event).read()
             except IOError:
                 try:
-                    template = io.open(app["config"]["TEMPLATES_DIR"] + "/generic/%s" % event).read()
+                    template = io.open(config["TEMPLATES_DIR"] + "/generic/%s" % event).read()
                 except IOError:
-                    print "Status: 500 No matching template"
-                    print "Content-Type: application/json"
-                    print
-                    print json.dumps({'msg': 'no template defined for event %s' % event})
-                    return
+                    output += "Status: 500 No matching template\n"
+                    output += "Content-Type: application/json\n\n"
+                    output += json.dumps({'msg': 'no template defined for event %s' % event})
+                    return output
             body = pystache.render(template, payload)
             subject, dummy, body = body.partition('\n')
             msg = MIMENonMultipart("text", "plain", charset="utf-8")
             msg.set_payload(body, charset=cs)
-            frum = repo.get("email", {}).get("from", app["config"]["EMAIL_FROM"])
+            frum = repo.get("email", {}).get("from", config["EMAIL_FROM"])
             msgid = "<%s-%s-%s-%s>" % (event, event_id(event, payload),
                                        event_timestamp(event, payload), frum)
             (ref_event, ref_id) = refevent(event, payload)
@@ -160,8 +155,8 @@ def serveRequest():
             headers = {}
             frum_name = ""
             readable_frum = frum
-            if app["config"].get("GH_OAUTH_TOKEN", False):
-                headers['Authorization']="token %s" % (app["config"]["GH_OAUTH_TOKEN"])
+            if config.get("GH_OAUTH_TOKEN", False):
+                headers['Authorization']="token %s" % (config["GH_OAUTH_TOKEN"])
                 frum_name = requests.get(payload['sender']['url'],
                                      headers=headers
                                      ).json()['name']
@@ -173,21 +168,20 @@ def serveRequest():
             msg['Message-ID'] = msgid
             if inreplyto:
                 msg['In-Reply-To'] = inreplyto
-            s = smtplib.SMTP(app["config"]["SMTP_HOST"])
+            s = smtplib.SMTP(config["SMTP_HOST"])
             s.sendmail(frum, [too], msg.as_string())
             s.quit()
-            print "Content-Type: application/json"
-            print
-            print json.dumps({'msg': 'mail sent to %s with subject %s' % (too, subject)})
-            return
-        print "Content-Type: text/plain; charset=utf-8"
-        print
-        print 'OK'
-        return
+            output += "Content-Type: application/json\n\n"
+            output += json.dumps({'msg': 'mail sent to %s with subject %s' % (too, subject)})
+            return output
+        output += "Content-Type: text/plain; charset=utf-8\n\n"
+        output += 'OK'
+        return output
 
 if __name__ == "__main__":
-    app["config"]["repos"] = "repos.json"
-    validate_repos()
+    config = json.loads(io.open('instance/config.json').read())
+    config["repos"] = "repos.json"
+    validate_repos(config)
     if os.environ.has_key('SCRIPT_NAME'):
-        serveRequest()
+        print serveRequest(config, sys.stdin.read())
 
