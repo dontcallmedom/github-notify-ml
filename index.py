@@ -100,7 +100,11 @@ def serveRequest():
             if ipaddress.ip_address(ip) in ipaddress.ip_network(block):
                 break #the remote_addr is within the network range of github
         else:
-            abort(403)
+            print "Status: 403 Unrecognized IP"
+            print "Content-Type: application/json"
+            print
+            print json.dumps({'msg': 'Unrecognized IP address', 'ip': remote_addr})
+            return
 
         event = os.environ.get('HTTP_X_GITHUB_EVENT', None)
         if event == "ping":
