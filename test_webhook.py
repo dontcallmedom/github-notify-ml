@@ -1,51 +1,39 @@
 from mock import patch, call
 import unittest
 import smtplib
-from index import app
-from flask import request
 import json
-import responses
+import requests
 import io
+from test_server import Server
 
 # depends on mocking responses to request via https://github.com/dropbox/responses
 
+
+
 class SendEmailGithubTests(unittest.TestCase):
+
     def setUp(self):
-        import logging, sys
-        from logging import StreamHandler
-        handler = StreamHandler(sys.stderr)
-        handler.setLevel(logging.INFO)
-        app.logger.addHandler(handler)
-
-        app.config['repos']='tests/repos.json'
-        app.config['GH_OAUTH_TOKEN']='foo'
-        self.app = app.test_client()
-        responses.add(responses.GET, 'https://api.github.com/meta',
-                      body='{"hooks":["127.0.0.0/8"]}', content_type='application/json')
-        responses.add(responses.GET, 'https://api.github.com/users/dontcallmedom',
-                      body='{"name":"Dominique Hazael-Massieux"}', content_type='application/json')
-
+        self.t = Server()
+        self.t.start()
 
     def test_ignore_get(self):
-        rv = self.app.get('/')
-        assert ' Nothing to see here, move along ...' == rv.data
+        rv = requests.get('http://localhost:8000/')
+        assert ' Nothing to see here, move along ...' == rv.text
 
-    @responses.activate
     def test_ip_check_ok(self):
-        rv = self.app.post('/', headers=[('X-GitHub-Event', 'ping')], environ_base={'REMOTE_ADDR': '127.0.0.1'})
-        data = json.loads(rv.data)
+        rv = requests.post('http://localhost:8000/', headers={'X-GitHub-Event': 'ping', 'Remote-Addr': '127.0.0.1'})
+        data = rv.json()
         assert data["msg"] == "Hi!"
         assert rv.status_code == 200
 
-    @responses.activate
     def test_ip_check_403(self):
-        rv = self.app.post('/', headers=[('X-GitHub-Event', 'ping')], environ_base={'REMOTE_ADDR': '128.0.0.1'})
+        rv = requests.post('http://localhost:8000/', headers={'X-GitHub-Event':'ping', 'Remote-Addr': '128.0.0.1'})
         assert rv.status_code == 403
 
 
     def do_operation(self, operation, jsonf, msgf, mock_smtp):
         data = io.open(jsonf).read()
-        rv = self.app.post('/', headers=[('X-GitHub-Event', operation)], environ_base={'REMOTE_ADDR': '127.0.0.1'}, data=data)
+        rv = requests.post('http://localhost:8000/', headers={'X-GitHub-Event': operation}, data=data)
         instance = mock_smtp.return_value
         assert rv.status_code == 200
         self.assertEqual(instance.sendmail.call_count, 1)
@@ -57,30 +45,29 @@ class SendEmailGithubTests(unittest.TestCase):
             )
 
     @patch("smtplib.SMTP")
-    @responses.activate
     def test_push_notif(self, mock_smtp):
         self.do_operation("push", "tests/push-notif.json", "tests/push-notif.msg", mock_smtp)
 
     @patch("smtplib.SMTP")
-    @responses.activate
     def test_issue_notif(self, mock_smtp):
         self.do_operation("issues", "tests/issue-notif.json", "tests/issue-notif.msg", mock_smtp)
 
     @patch("smtplib.SMTP")
-    @responses.activate
     def test_issue_comment_notif(self, mock_smtp):
         self.do_operation("issue_comment", "tests/issue-comment-notif.json", "tests/issue-comment-notif.msg", mock_smtp)
 
-    @responses.activate
     @patch("smtplib.SMTP")
     def test_unavailable_template(self, mock_smtp):
         data = io.open("tests/push-notif.json").read()
-        rv = self.app.post('/', headers=[('X-GitHub-Event', "foobar")], environ_base={'REMOTE_ADDR': '127.0.0.1'}, data=data)
+        rv = requests.post('http://localhost:8000/', headers={'X-GitHub-Event': "foobar"}, data=data)
         instance = mock_smtp.return_value
         import sys
         sys.stderr.write(str(rv.status_code))
-        assert rv.status_code == 400
+        assert rv.status_code == 500
         self.assertEqual(instance.sendmail.call_count, 0)
+
+    def tearDown(self):
+        self.t.terminate()
 
 if __name__ == '__main__':
     unittest.main()

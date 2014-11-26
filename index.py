@@ -12,12 +12,9 @@ import ipaddress
 import smtplib
 from email.mime.nonmultipart import MIMENonMultipart
 import email.charset
-from flask import Flask, request, abort
 import pystache
 
-app = Flask(__name__, instance_relative_config=True)
-app.config.from_object('config')
-app.config.from_pyfile('config.py')
+config = json.loads(io.open('instance/config.json').read())
 
 cs=email.charset.Charset('utf-8')
 cs.body_encoding = email.charset.QP
@@ -25,18 +22,18 @@ cs.body_encoding = email.charset.QP
 class InvalidConfiguration(Exception):
     pass
 
-def validate_repos():
+def validate_repos(config):
     # TODO: Check that all configured repos have events with matching templates?
     # that they all have an email.to field?
-    repos = json.loads(io.open(app.config['repos'], 'r').read())
+    repos = json.loads(io.open(config['repos'], 'r').read())
     import os.path
     for (repo,data) in repos.iteritems():
         for e in data["events"]:
-            generic_template = app.config['TEMPLATES_DIR'] + '/generic/' + e
-            specific_template = app.config['TEMPLATES_DIR'] + '/repos/' + repo + '/' + e
+            generic_template = app["config"]['TEMPLATES_DIR'] + '/generic/' + e
+            specific_template = app["config"]['TEMPLATES_DIR'] + '/repos/' + repo + '/' + e
             if not (os.path.isfile(generic_template)
             or os.path.isfile(specific_template)):
-                raise InvalidConfiguration("No template matching event %s in %s (looked at %s and %s)" % (e, repo, generic_template, specific_template))
+                raise InvalidConfiguration("No template matching event %s defined in %s in %s (looked at %s and %s)" % (e, config['repos'], repo, generic_template, specific_template))
     pass
 
 def event_id(event, payload):
@@ -84,29 +81,36 @@ def refevent(event, payload):
     return (None,None)
 
 
-@app.route("/", methods=['GET', 'POST'])
-def index():
+def serveRequest(config, postbody):
+    request_method = os.environ.get('REQUEST_METHOD', "GET")
+    remote_addr = os.environ.get('HTTP_X_FORWARDED_FOR', os.environ.get('REMOTE_ADDR'))
     # Store the IP address blocks that github uses for hook requests.
     hook_blocks = requests.get('https://api.github.com/meta').json()['hooks']
+    output = ""
 
-    if request.method == 'GET':
-        return ' Nothing to see here, move along ...'
-
-    elif request.method == 'POST':
+    if request_method == 'GET':
+        output += "Content-Type: text/plain; charset=utf-8\n\n"
+        output += " Nothing to see here, move along ..."
+        return output
+    elif request_method == 'POST':
         # Check if the POST request if from github.com
         for block in hook_blocks:
-            ip = ipaddress.ip_address(u'%s' % request.remote_addr)
+            ip = ipaddress.ip_address(u'%s' % remote_addr)
             if ipaddress.ip_address(ip) in ipaddress.ip_network(block):
                 break #the remote_addr is within the network range of github
         else:
-            abort(403)
+            output += "Status: 403 Unrecognized IP\n"
+            output += "Content-Type: application/json\n\n"
+            output += json.dumps({'msg': 'Unrecognized IP address', 'ip': remote_addr})
+            return output
 
-        event = request.headers.get('X-GitHub-Event', None)
+        event = os.environ.get('HTTP_X_GITHUB_EVENT', None)
         if event == "ping":
-            return json.dumps({'msg': 'Hi!'})
-
-        repos = json.loads(io.open(app.config['repos'], 'r').read())
-        payload = json.loads(request.data)
+            output += "Content-Type: application/json\n\n"
+            output += json.dumps({'msg': 'Hi!'})
+            return output
+        repos = json.loads(io.open(config['repos'], 'r').read())
+        payload = json.loads(postbody)
         repo_meta = {
 	    'name': payload['repository'].get('name')
 	    }
@@ -119,19 +123,25 @@ def index():
             if payload.get("action", False):
                 event = event + "." + payload['action']
             if event not in repo['events'] and (not repo_meta.has_key("branch") or event not in repo['branches'].get(repo_meta['branch'], [])):
-                return json.dumps({'msg': 'event type %s not managed for %s' % (event, '{owner}/{name}'.format(**repo_meta)) })
+                output += "Status: 400 Unhandled event\n"
+                output += "Content-Type: application/json\n\n"
+                output += json.dumps({'msg': 'event type %s not managed for %s' % (event, '{owner}/{name}'.format(**repo_meta)) })
+                return output
             try:
-                template = io.open(app.config["TEMPLATES_DIR"] + "/repos/{owner}/{name}/%s".format(**repo_meta) % event).read()
+                template = io.open(config["TEMPLATES_DIR"] + "/repos/{owner}/{name}/%s".format(**repo_meta) % event).read()
             except IOError:
                 try:
-                    template = io.open(app.config["TEMPLATES_DIR"] + "/generic/%s" % event).read()
+                    template = io.open(config["TEMPLATES_DIR"] + "/generic/%s" % event).read()
                 except IOError:
-                    return (json.dumps({'msg': 'no template defined for event %s' % event}), 400, {})
+                    output += "Status: 500 No matching template\n"
+                    output += "Content-Type: application/json\n\n"
+                    output += json.dumps({'msg': 'no template defined for event %s' % event})
+                    return output
             body = pystache.render(template, payload)
             subject, dummy, body = body.partition('\n')
             msg = MIMENonMultipart("text", "plain", charset="utf-8")
             msg.set_payload(body, charset=cs)
-            frum = repo.get("email", {}).get("from", app.config["EMAIL_FROM"])
+            frum = repo.get("email", {}).get("from", config["EMAIL_FROM"])
             msgid = "<%s-%s-%s-%s>" % (event, event_id(event, payload),
                                        event_timestamp(event, payload), frum)
             (ref_event, ref_id) = refevent(event, payload)
@@ -145,8 +155,8 @@ def index():
             headers = {}
             frum_name = ""
             readable_frum = frum
-            if app.config.get("GH_OAUTH_TOKEN", False):
-                headers['Authorization']="token %s" % (app.config["GH_OAUTH_TOKEN"])
+            if config.get("GH_OAUTH_TOKEN", False):
+                headers['Authorization']="token %s" % (config["GH_OAUTH_TOKEN"])
                 frum_name = requests.get(payload['sender']['url'],
                                      headers=headers
                                      ).json()['name']
@@ -158,23 +168,20 @@ def index():
             msg['Message-ID'] = msgid
             if inreplyto:
                 msg['In-Reply-To'] = inreplyto
-            s = smtplib.SMTP(app.config["SMTP_HOST"])
+            s = smtplib.SMTP(config["SMTP_HOST"])
             s.sendmail(frum, [too], msg.as_string())
             s.quit()
-            return json.dumps({'msg': 'mail sent to %s with subject %s' % (too, subject)})
-        return 'OK'
+            output += "Content-Type: application/json\n\n"
+            output += json.dumps({'msg': 'mail sent to %s with subject %s' % (too, subject)})
+            return output
+        output += "Content-Type: text/plain; charset=utf-8\n\n"
+        output += 'OK'
+        return output
 
 if __name__ == "__main__":
-    app.config["repos"] = "repos.json"
-    validate_repos()
-    import logging
-    from logging.handlers import RotatingFileHandler
-    handler = RotatingFileHandler(app.config["LOG"], maxBytes=10000, backupCount=1)
-    handler.setLevel(logging.INFO)
-    app.logger.addHandler(handler)
-    try:
-        port_number = int(sys.argv[1])
-    except:
-        port_number = app.config["HTTP_PORT"]
-    is_dev = os.environ.get('ENV', None) == 'dev'
-    app.run(host=app.config["HTTP_HOST"], port=port_number, debug=is_dev)
+    config = json.loads(io.open('instance/config.json').read())
+    config["repos"] = "repos.json"
+    validate_repos(config)
+    if os.environ.has_key('SCRIPT_NAME'):
+        print serveRequest(config, sys.stdin.read())
+
