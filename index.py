@@ -169,7 +169,7 @@ def serveRequest(config, postbody):
             if inreplyto:
                 msg['In-Reply-To'] = inreplyto
             s = smtplib.SMTP(config["SMTP_HOST"])
-            s.sendmail(frum, [too], msg.as_string())
+            s.sendmail(frum, too, msg.as_string())
             s.quit()
             output += "Content-Type: application/json\n\n"
             output += json.dumps({'msg': 'mail sent to %s with subject %s' % (too, subject)})
