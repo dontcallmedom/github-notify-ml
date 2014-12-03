@@ -151,7 +151,7 @@ def serveRequest(config, postbody):
                                             event_timestamp(ref_event, payload),
                                             frum)
 
-            too = repo.get("email", {}).get("to")
+            too = repo.get("email", {}).get("to").split(",")
             headers = {}
             frum_name = ""
             readable_frum = frum
@@ -163,7 +163,7 @@ def serveRequest(config, postbody):
                 readable_frum = u"%s via GitHub <%s>" % (frum_name, frum)
 
             msg['From'] = readable_frum
-            msg['To'] = too
+            msg['To'] = ",".join(too)
             msg['Subject'] = subject
             msg['Message-ID'] = msgid
             if inreplyto:
