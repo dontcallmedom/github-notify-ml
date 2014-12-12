@@ -1,7 +1,7 @@
-[{{repository.name}}] {{issue.title}}
-{{issue.user.login}} has just created a new issue for {{repository.html_url}}:
+[{{repository.name}}] {{{issue.title]}}
+{{{issue.user.login]}} has just created a new issue for {{{repository.html_url]}}:
 
 == {{{issue.title}}} ==
 {{{issue.body}}}
 
-See {{issue.html_url}}
+See {{{issue.html_url}}}
