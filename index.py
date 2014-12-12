@@ -13,6 +13,7 @@ import smtplib
 from email.mime.nonmultipart import MIMENonMultipart
 import email.charset
 import pystache
+import textwrap
 
 config = json.loads(io.open('instance/config.json').read())
 
@@ -137,7 +138,7 @@ def serveRequest(config, postbody):
                     output += "Content-Type: application/json\n\n"
                     output += json.dumps({'msg': 'no template defined for event %s' % event})
                     return output
-            body = pystache.render(template, payload)
+            body = textwrap.wrap(pystache.render(template, payload))
             subject, dummy, body = body.partition('\n')
             msg = MIMENonMultipart("text", "plain", charset="utf-8")
             msg.set_payload(body, charset=cs)
