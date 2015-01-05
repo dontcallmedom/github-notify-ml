@@ -1,5 +1,5 @@
 [{{repository.name}}] {{{issue.title}}}
-{{{issue.user.login]}} has just created a new issue for {{{repository.html_url]}}:
+{{{issue.user.login]}} has just created a new issue for {{{repository.html_url}}}:
 
 == {{{issue.title}}} ==
 {{{issue.body}}}
