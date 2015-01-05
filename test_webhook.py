@@ -37,12 +37,12 @@ class SendEmailGithubTests(unittest.TestCase):
         instance = mock_smtp.return_value
         assert rv.status_code == 200
         self.assertEqual(instance.sendmail.call_count, 1)
-        import sys
         msg = io.open(msgf).read()
-        self.assertEqual(
-                instance.sendmail.mock_calls,
-                [call("test@localhost", ["dom@localhost"], msg)]
-            )
+        name, args, kwargs = instance.sendmail.mock_calls[0]
+        self.assertEqual(args[0], u"test@localhost")
+        self.assertEqual(args[1], [u"dom@localhost"])
+        self.maxDiff = None
+        self.assertMultiLineEqual(args[2], msg)
 
     @patch("smtplib.SMTP")
     def test_push_notif(self, mock_smtp):
