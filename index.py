@@ -139,7 +139,7 @@ def serveRequest(config, postbody):
             body = pystache.render(template, payload)
             subject, dummy, body = body.partition('\n')
             paragraphs = body.splitlines()
-            wrapper = textwrap.TextWrapper( break_long_words=False, break_on_hyphens=False)
+            wrapper = textwrap.TextWrapper( break_long_words=False, break_on_hyphens=False,  drop_whitespace=False)
             body = "\n".join(map(wrapper.fill, paragraphs))
             msg = MIMENonMultipart("text", "plain", charset="utf-8")
             msg.set_payload(body, charset=cs)
