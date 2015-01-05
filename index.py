@@ -138,8 +138,9 @@ def serveRequest(config, postbody):
                     output += "Content-Type: application/json\n\n"
                     output += json.dumps({'msg': 'no template defined for event %s' % event})
                     return output
-            body = textwrap.wrap(pystache.render(template, payload))
+            body = pystache.render(template, payload)
             subject, dummy, body = body.partition('\n')
+            body = "\n".join(textwrap.wrap(body))
             msg = MIMENonMultipart("text", "plain", charset="utf-8")
             msg.set_payload(body, charset=cs)
             frum = repo.get("email", {}).get("from", config["EMAIL_FROM"])
