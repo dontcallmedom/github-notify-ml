@@ -20,6 +20,9 @@ class PythonCGIHTTPRequestHandler(BaseHTTPRequestHandler):
         os.environ['REQUEST_METHOD'] = "GET"
         self.serve()
 
+    def log_message(self, format, *args):
+        pass
+
     @responses.activate
     def serve(self):
         data = self.rfile.read(int(self.headers.get("Content-Length", 0)))
@@ -65,12 +68,8 @@ class Server:
         self.mythread.start()
 
     def serve(self):
-
-        while(not self.stop.is_set()):
-            try:
-                self.httpd.serve_forever()
-            except KeyboardInterrupt:
-                self.httpd.socket.close()
+        self.httpd.handle_request()
+        return
 
     def terminate(self):
         self.stop.set()
