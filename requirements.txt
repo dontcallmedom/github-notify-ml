@@ -2,4 +2,4 @@ pystache
 ipaddress
 requests
 responses
-dateutil
+python-dateutil
