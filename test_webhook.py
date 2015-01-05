@@ -4,6 +4,7 @@ import smtplib
 import json
 import requests
 import io
+import quopri
 from test_server import Server
 
 # depends on mocking responses to request via https://github.com/dropbox/responses
@@ -42,7 +43,7 @@ class SendEmailGithubTests(unittest.TestCase):
         self.assertEqual(args[0], u"test@localhost")
         self.assertEqual(args[1], [u"dom@localhost"])
         self.maxDiff = None
-        self.assertMultiLineEqual(args[2], msg)
+        self.assertMultiLineEqual(quopri.decodestring(args[2]), msg)
 
     @patch("smtplib.SMTP")
     def test_push_notif(self, mock_smtp):

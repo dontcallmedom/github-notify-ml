@@ -7,10 +7,9 @@ Subject: [github-notify-ml] new commits pushed by dontcallmedom
 Message-ID: <push-d3cb75fab91fd7dec6cd8fff69063405d31c505b-1412783833-test@localhost>
 
 
-The following commits were just pushed by dontcallmedom to
+The following commits were just pushed by dontcallmedom to 
 https://github.com/dontcallmedom/github-notify-ml:
 
 * basic template for pushes
   by Dominique Hazael-Massieux
-https://github.com/dontcallmedom/github-notify-ml/commit/d3cb75fab91fd7dec6=
-cd8fff69063405d31c505b
+https://github.com/dontcallmedom/github-notify-ml/commit/d3cb75fab91fd7dec6cd8fff69063405d31c505b
