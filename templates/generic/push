@@ -1,6 +1,6 @@
 [{{repository.name}}] new commits pushed by {{{pusher.name}}}
 
-The following commits were just pushed by {{{pusher.name]}} to {{{repository.html_url}}}:
+The following commits were just pushed by {{{pusher.name}}} to {{{repository.html_url}}}:
 
 {{#commits}}
 * {{{message}}}
