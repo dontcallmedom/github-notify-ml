@@ -123,7 +123,7 @@ def serveRequest(config, postbody):
         if repo and repo.get('email', None):
             if payload.get("action", False):
                 event = event + "." + payload['action']
-            if event not in repo['events'] and (not repo_meta.has_key("branch") or event not in repo['branches'].get(repo_meta['branch'], [])):
+            if event not in repo['events'] and (not repo_meta.has_key("branch") or event not in repo.get('branches', {}).get(repo_meta['branch'], [])):
                 output += "Status: 400 Unhandled event\n"
                 output += "Content-Type: application/json\n\n"
                 output += json.dumps({'msg': 'event type %s not managed for %s' % (event, '{owner}/{name}'.format(**repo_meta)) })
