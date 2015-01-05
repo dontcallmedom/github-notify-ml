@@ -140,7 +140,7 @@ def serveRequest(config, postbody):
                     return output
             body = pystache.render(template, payload)
             subject, dummy, body = body.partition('\n')
-            body = "\n".join(textwrap.wrap(body))
+            body = textwrap.fill(body)
             msg = MIMENonMultipart("text", "plain", charset="utf-8")
             msg.set_payload(body, charset=cs)
             frum = repo.get("email", {}).get("from", config["EMAIL_FROM"])
