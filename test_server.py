@@ -1,3 +1,4 @@
+# coding=utf-8
 import os
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 import threading
@@ -57,7 +58,7 @@ class Server:
         responses.add(responses.GET, 'https://api.github.com/meta',
                       body='{"hooks":["127.0.0.0/8"]}', content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/users/dontcallmedom',
-                      body='{"name":"Dominique Hazael-Massieux"}', content_type='application/json')
+                      body=u'{"name":"Dominique Hazaël-Massieux"}', content_type='application/json')
         self.stop = threading.Event()
         server_address=('localhost',8000)
         handler = PythonCGIHTTPRequestHandler
