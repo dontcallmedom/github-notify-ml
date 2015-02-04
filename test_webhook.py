@@ -43,7 +43,7 @@ class SendEmailGithubTests(unittest.TestCase):
         self.assertEqual(args[0], u"test@localhost")
         self.assertEqual(args[1], [u"dom@localhost"])
         self.maxDiff = None
-        self.assertMultiLineEqual(quopri.decodestring(args[2]), msg)
+        self.assertMultiLineEqual(unicode(quopri.decodestring(args[2]), 'utf-8'), unicode(msg))
 
     @patch("smtplib.SMTP")
     def test_push_notif(self, mock_smtp):
