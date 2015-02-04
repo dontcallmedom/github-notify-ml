@@ -10,13 +10,15 @@ import subprocess
 import requests
 import ipaddress
 import smtplib
-from email.mime.nonmultipart import MIMENonMultipart
+from email.mime.text import MIMEText
+from email.header import Header
+from email.generator import Generator
 import email.charset
 import pystache
 import textwrap
+from cStringIO import StringIO
 
-cs=email.charset.Charset('utf-8')
-cs.body_encoding = email.charset.QP
+email.charset.add_charset('utf-8', email.charset.QP, email.charset.QP, 'utf-8')
 
 class InvalidConfiguration(Exception):
     pass
@@ -141,8 +143,8 @@ def serveRequest(config, postbody):
             paragraphs = body.splitlines()
             wrapper = textwrap.TextWrapper( break_long_words=False, break_on_hyphens=False,  drop_whitespace=False)
             body = "\n".join(map(wrapper.fill, paragraphs))
-            msg = MIMENonMultipart("text", "plain", charset="utf-8")
-            msg.set_payload(body, charset=cs)
+            msg = MIMEText("text", "plain", _charset="utf-8")
+            msg.set_payload(body, charset='utf-8')
             frum = repo.get("email", {}).get("from", config["EMAIL_FROM"])
             msgid = "<%s-%s-%s-%s>" % (event, event_id(event, payload),
                                        event_timestamp(event, payload), frum)
@@ -164,14 +166,18 @@ def serveRequest(config, postbody):
                                      ).json().get('name', payload['sender']['login'])
                 readable_frum = u"%s via GitHub <%s>" % (frum_name, frum)
 
-            msg['From'] = readable_frum
+            msg['From'] = Header(readable_frum.encode('utf-8'), 'utf-8').encode()
             msg['To'] = ",".join(too)
-            msg['Subject'] = subject
+            msg['Subject'] = Header(subject, 'utf-8')
             msg['Message-ID'] = msgid
             if inreplyto:
                 msg['In-Reply-To'] = inreplyto
             s = smtplib.SMTP(config["SMTP_HOST"])
-            s.sendmail(frum, too, msg.as_string())
+            # from http://wordeology.com/computer/how-to-send-good-unicode-email-with-python.html
+            m = StringIO()
+            g = Generator(m, False)
+            g.flatten(msg)
+            s.sendmail(frum, too, m.getvalue())
             s.quit()
             output += "Content-Type: application/json\n\n"
             output += json.dumps({'msg': 'mail sent to %s with subject %s' % (too, subject)})
