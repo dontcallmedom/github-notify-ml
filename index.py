@@ -14,6 +14,7 @@ from email.mime.text import MIMEText
 from email.header import Header
 from email.generator import Generator
 import email.charset
+import email.header
 import pystache
 import textwrap
 from cStringIO import StringIO
