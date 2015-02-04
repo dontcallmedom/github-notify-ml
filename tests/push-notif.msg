@@ -1,8 +1,7 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
-From: =?utf-8?q?Dominique_Haza=C3=ABl-Massieux_via_GitHub_=3Ctest=40localhost?=
- =?utf-8?q?=3E?=
+From: =?utf-8?q?Dominique_Haza=C3=ABl-Massieux_via_GitHub?= <test@localhost>
 To: dom@localhost
 Subject: [github-notify-ml] new commits pushed by dontcallmedom
 Message-ID: <push-d3cb75fab91fd7dec6cd8fff69063405d31c505b-1412783833-test@localhost>
