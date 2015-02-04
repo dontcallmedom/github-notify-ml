@@ -12,6 +12,7 @@ import ipaddress
 import smtplib
 from email.mime.nonmultipart import MIMENonMultipart
 import email.charset
+import email.header
 import pystache
 import textwrap
 
@@ -156,14 +157,15 @@ def serveRequest(config, postbody):
             too = repo.get("email", {}).get("to").split(",")
             headers = {}
             frum_name = ""
-            readable_frum = frum
+            readable_frum = email.header.Header(charset='utf8', header_name='From')
             if config.get("GH_OAUTH_TOKEN", False):
                 headers['Authorization']="token %s" % (config["GH_OAUTH_TOKEN"])
                 frum_name = requests.get(payload['sender']['url'],
                                      headers=headers
                                      ).json().get('name', payload['sender']['login'])
-                readable_frum = u"%s via GitHub <%s>" % (frum_name, frum)
+                readable_frum.append('%s via GitHub' % (frum_name))
 
+            readable_frum.append('<%s>' % (frum), charset='us-ascii')
             msg['From'] = readable_frum
             msg['To'] = ",".join(too)
             msg['Subject'] = subject
