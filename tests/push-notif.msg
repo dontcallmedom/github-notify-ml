@@ -10,6 +10,7 @@ Message-ID: <push-d3cb75fab91fd7dec6cd8fff69063405d31c505b-1412783833-test@local
 The following commits were just pushed by dontcallmedom to 
 https://github.com/dontcallmedom/github-notify-ml:
 
+
 * basic template for pushes
   by Dominique Hazael-Massieux
 https://github.com/dontcallmedom/github-notify-ml/commit/d3cb75fab91fd7dec6cd8fff69063405d31c505b
