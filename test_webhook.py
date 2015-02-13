@@ -45,8 +45,13 @@ class SendEmailGithubTests(unittest.TestCase):
         self.maxDiff = None
         import email
         import sys
-        sent_msg = email.message_from_string(args[2]).as_string()
-        self.assertMultiLineEqual(sent_msg, unicode(msg))
+        sent_email = email.message_from_string(args[2])
+        sent_headers = args[2].split("\n\n")[0]
+        sent_body = sent_email.get_payload(decode=True)
+        ref_headers = msg.split("\n\n")[0]
+        ref_body = "\n".join(msg.split("\n\n")[1:])
+        self.assertMultiLineEqual(sent_headers, ref_headers)
+        self.assertMultiLineEqual(sent_body, ref_body)
 
     @patch("smtplib.SMTP")
     def test_push_notif(self, mock_smtp):
