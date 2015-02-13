@@ -8,5 +8,13 @@
         "to":"dom@localhost",
         "from":"test@localhost"
     }
+  },
+ "w3c/presentation-api": {
+    "events": ["pull_request.opened"],
+    "email": {
+        "to":"dom@localhost",
+        "from":"test@localhost"
+    }
   }
+
 }

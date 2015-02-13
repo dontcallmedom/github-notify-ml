@@ -143,8 +143,7 @@ def serveRequest(config, postbody):
             paragraphs = body.splitlines()
             wrapper = textwrap.TextWrapper( break_long_words=False, break_on_hyphens=False,  drop_whitespace=False)
             body = "\n".join(map(wrapper.fill, paragraphs))
-            msg = MIMEText("text", "plain", _charset="utf-8")
-            msg.set_payload(body, charset='utf-8')
+            msg = MIMEText(body, _charset="utf-8")
             frum = repo.get("email", {}).get("from", config["EMAIL_FROM"])
             msgid = "<%s-%s-%s-%s>" % (event, event_id(event, payload),
                                        event_timestamp(event, payload), frum)
