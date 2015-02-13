@@ -61,6 +61,11 @@ class SendEmailGithubTests(unittest.TestCase):
         self.do_operation("issue_comment", "tests/issue-comment-notif.json", "tests/issue-comment-notif.msg", mock_smtp)
 
     @patch("smtplib.SMTP")
+    def test_pull_notif(self, mock_smtp):
+        self.do_operation("pull_request", "tests/pull-notif.json", "tests/pull-notif.msg", mock_smtp)
+
+
+    @patch("smtplib.SMTP")
     def test_unavailable_template(self, mock_smtp):
         data = io.open("tests/push-notif.json").read()
         rv = requests.post('http://localhost:8000/', headers={'X-GitHub-Event': "foobar"}, data=data)

@@ -59,6 +59,8 @@ class Server:
                       body='{"hooks":["127.0.0.0/8"]}', content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/users/dontcallmedom',
                       body=u'{"name":"Dominique Hazaël-Massieux"}', content_type='application/json')
+        responses.add(responses.GET, 'https://api.github.com/users/anssiko',
+                      body=u'{"name":"Anssi Kostiainen"}', content_type='application/json')
         self.stop = threading.Event()
         server_address=('localhost',8000)
         handler = PythonCGIHTTPRequestHandler
