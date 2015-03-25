@@ -10,7 +10,7 @@ config={"SMTP_HOST":"localhost",
         "EMAIL_FROM":"test@localhost",
         "TEMPLATES_DIR":"templates",
         "GH_OAUTH_TOKEN":"foo",
-        "repos": "tests/repos.json"
+        "mls": "tests/mls.json"
         }
 
 

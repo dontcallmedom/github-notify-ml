@@ -26,16 +26,16 @@ class InvalidConfiguration(Exception):
 def validate_repos(config):
     # TODO: Check that all configured repos have events with matching templates?
     # that they all have an email.to field?
-    repos = json.loads(io.open(config['repos'], 'r').read())
+    mls = json.loads(io.open(config['mls'], 'r').read())
     import os.path
-    for (repo,data) in repos.iteritems():
-        for e in data["events"]:
-            generic_template = config['TEMPLATES_DIR'] + '/generic/' + e
-            specific_template = config['TEMPLATES_DIR'] + '/repos/' + repo + '/' + e
-            if not (os.path.isfile(generic_template)
-            or os.path.isfile(specific_template)):
-                raise InvalidConfiguration("No template matching event %s defined in %s in %s (looked at %s and %s)" % (e, config['repos'], repo, generic_template, specific_template))
-    pass
+    for (ml, repos) in mls.iteritems():
+        for (repo,data) in repos.iteritems():
+            for e in data["events"]:
+                generic_template = config['TEMPLATES_DIR'] + '/generic/' + e
+                specific_template = config['TEMPLATES_DIR'] + '/repos/' + repo + '/' + e
+                if not (os.path.isfile(generic_template)
+                        or os.path.isfile(specific_template)):
+                    raise InvalidConfiguration("No template matching event %s defined in %s in %s (looked at %s and %s)" % (e, config['repos'], repo, generic_template, specific_template))
 
 def event_id(event, payload):
     if event.split(".")[0] == "issues":
@@ -110,7 +110,12 @@ def serveRequest(config, postbody):
             output += "Content-Type: application/json\n\n"
             output += json.dumps({'msg': 'Hi!'})
             return output
-        repos = json.loads(io.open(config['repos'], 'r').read())
+        mls = json.loads(io.open(config['mls'], 'r').read())
+        repos = {}
+        for (ml, mlrepos) in mls.iteritems():
+            for (reponame, repoconf) in mlrepos.iteritems():
+                repos[reponame] = repoconf
+                repos[reponame]["email"] = {"to":ml}
         payload = json.loads(postbody)
         repo_meta = {
 	    'name': payload['repository'].get('name')
@@ -119,8 +124,12 @@ def serveRequest(config, postbody):
 	match = re.match(r"refs/heads/(?P<branch>.*)", payload.get('ref', ''))
 	if match:
 	    repo_meta['branch'] = match.groupdict()['branch']
-        repo = repos.get('{owner}/{name}'.format(**repo_meta), None)
-        if repo and repo.get('email', None):
+
+        def repoMatch(meta):
+            return lambda x: x == '{owner}/{name}'.format(**meta)
+
+        for reponame in filter(repoMatch(repo_meta), repos):
+            repo = repos[reponame]
             if payload.get("action", False):
                 event = event + "." + payload['action']
             if event not in repo['events'] and (not repo_meta.has_key("branch") or event not in repo.get('branches', {}).get(repo_meta['branch'], [])):
@@ -188,7 +197,7 @@ def serveRequest(config, postbody):
 
 if __name__ == "__main__":
     config = json.loads(io.open('instance/config.json').read())
-    config["repos"] = "repos.json"
+    config["mls"] = "mls.json"
     validate_repos(config)
     if os.environ.has_key('SCRIPT_NAME'):
         print serveRequest(config, sys.stdin.read())
