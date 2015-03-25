@@ -12,7 +12,8 @@
  },
  "log@localhost": {
    "regexp:.*": {
-       "events": ["pull_request.opened"]
+       "events": ["pull_request.opened", "issues.opened"],
+       "eventFilter": {"label":"enhancement"}
    }
  }
 }

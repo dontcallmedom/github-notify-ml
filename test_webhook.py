@@ -54,7 +54,6 @@ class SendEmailGithubTests(unittest.TestCase):
             ref_body = "\n".join(msg.split("\n\n")[1:])
             self.assertMultiLineEqual(sent_headers, ref_headers)
             self.assertMultiLineEqual(sent_body, ref_body)
-            i = i +1
 
     @patch("smtplib.SMTP")
     def test_push_notif(self, mock_smtp):
@@ -62,7 +61,7 @@ class SendEmailGithubTests(unittest.TestCase):
 
     @patch("smtplib.SMTP")
     def test_issue_notif(self, mock_smtp):
-        self.do_operation("issues", "tests/issue-notif.json", {"dom@localhost": "tests/issue-notif.msg"}, mock_smtp)
+        self.do_operation("issues", "tests/issue-notif.json", {"dom@localhost": "tests/issue-notif.msg", "log@localhost": "tests/issue-notif-log.msg"}, mock_smtp)
 
     @patch("smtplib.SMTP")
     def test_issue_comment_notif(self, mock_smtp):
@@ -70,7 +69,7 @@ class SendEmailGithubTests(unittest.TestCase):
 
     @patch("smtplib.SMTP")
     def test_pull_notif(self, mock_smtp):
-        self.do_operation("pull_request", "tests/pull-notif.json", {"dom@localhost": "tests/pull-notif.msg", "log@localhost": "tests/pull-notif-log.msg"}, mock_smtp)
+        self.do_operation("pull_request", "tests/pull-notif.json", {"dom@localhost": "tests/pull-notif.msg"}, mock_smtp)
 
 
     @patch("smtplib.SMTP")
