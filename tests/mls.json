@@ -9,5 +9,10 @@
    "w3c/presentation-api": {
       "events": ["pull_request.opened"]
    }
+ },
+ "log@localhost": {
+   "regexp:.*": {
+       "events": ["pull_request.opened"]
+   }
  }
 }

@@ -4,6 +4,7 @@ import smtplib
 import json
 import requests
 import io
+import sys
 import quopri
 from test_server import Server
 
@@ -32,42 +33,44 @@ class SendEmailGithubTests(unittest.TestCase):
         assert rv.status_code == 403
 
 
-    def do_operation(self, operation, jsonf, msgf, mock_smtp):
+    def do_operation(self, operation, jsonf, refs, mock_smtp):
         data = io.open(jsonf).read()
         rv = requests.post('http://localhost:8000/', headers={'X-GitHub-Event': operation}, data=data)
         instance = mock_smtp.return_value
-        assert rv.status_code == 200
-        self.assertEqual(instance.sendmail.call_count, 1)
-        msg = io.open(msgf).read()
-        name, args, kwargs = instance.sendmail.mock_calls[0]
-        self.assertEqual(args[0], u"test@localhost")
-        self.assertEqual(args[1], [u"dom@localhost"])
-        self.maxDiff = None
-        import email
-        import sys
-        sent_email = email.message_from_string(args[2])
-        sent_headers = args[2].split("\n\n")[0]
-        sent_body = sent_email.get_payload(decode=True)
-        ref_headers = msg.split("\n\n")[0]
-        ref_body = "\n".join(msg.split("\n\n")[1:])
-        self.assertMultiLineEqual(sent_headers, ref_headers)
-        self.assertMultiLineEqual(sent_body, ref_body)
+        self.assertEqual(rv.status_code, 200)
+        self.assertEqual(instance.sendmail.call_count, len(refs))
+        i = 0
+        for (name, args, kwargs) in instance.sendmail.mock_calls:
+            self.assertEqual(args[0], u"test@localhost")
+            self.assertIn(args[1][0], refs)
+            msg = io.open(refs[args[1][0]]).read()
+
+            self.maxDiff = None
+            import email
+            sent_email = email.message_from_string(args[2])
+            sent_headers = args[2].split("\n\n")[0]
+            sent_body = sent_email.get_payload(decode=True)
+            ref_headers = msg.split("\n\n")[0]
+            ref_body = "\n".join(msg.split("\n\n")[1:])
+            self.assertMultiLineEqual(sent_headers, ref_headers)
+            self.assertMultiLineEqual(sent_body, ref_body)
+            i = i +1
 
     @patch("smtplib.SMTP")
     def test_push_notif(self, mock_smtp):
-        self.do_operation("push", "tests/push-notif.json", "tests/push-notif.msg", mock_smtp)
+        self.do_operation("push", "tests/push-notif.json", {"dom@localhost": "tests/push-notif.msg"}, mock_smtp)
 
     @patch("smtplib.SMTP")
     def test_issue_notif(self, mock_smtp):
-        self.do_operation("issues", "tests/issue-notif.json", "tests/issue-notif.msg", mock_smtp)
+        self.do_operation("issues", "tests/issue-notif.json", {"dom@localhost": "tests/issue-notif.msg"}, mock_smtp)
 
     @patch("smtplib.SMTP")
     def test_issue_comment_notif(self, mock_smtp):
-        self.do_operation("issue_comment", "tests/issue-comment-notif.json", "tests/issue-comment-notif.msg", mock_smtp)
+        self.do_operation("issue_comment", "tests/issue-comment-notif.json", {"dom@localhost": "tests/issue-comment-notif.msg"}, mock_smtp)
 
     @patch("smtplib.SMTP")
     def test_pull_notif(self, mock_smtp):
-        self.do_operation("pull_request", "tests/pull-notif.json", "tests/pull-notif.msg", mock_smtp)
+        self.do_operation("pull_request", "tests/pull-notif.json", {"dom@localhost": "tests/pull-notif.msg", "log@localhost": "tests/pull-notif-log.msg"}, mock_smtp)
 
 
     @patch("smtplib.SMTP")
@@ -76,8 +79,7 @@ class SendEmailGithubTests(unittest.TestCase):
         rv = requests.post('http://localhost:8000/', headers={'X-GitHub-Event': "foobar"}, data=data)
         instance = mock_smtp.return_value
         import sys
-        sys.stderr.write(str(rv.status_code))
-        assert rv.status_code == 500
+        self.assertEqual(rv.status_code, 500)
         self.assertEqual(instance.sendmail.call_count, 0)
 
     def tearDown(self):
