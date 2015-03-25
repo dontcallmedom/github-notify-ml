@@ -8,6 +8,9 @@
    },
    "w3c/presentation-api": {
       "events": ["pull_request.opened"]
+   },
+   "w3c/mediacapture-main": {
+      "events": ["issue_comment.created"]
    }
  },
  "log@localhost": {
