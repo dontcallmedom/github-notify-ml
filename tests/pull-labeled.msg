@@ -8,7 +8,7 @@ Subject: [web-platform-tests] Pull Request: Adding a basic no-media call that us
 Message-ID: <pull_request.labeled-35304013-None-test@localhost>
 
 tobie has just labeled a pull request from alvestrand for 
-https://github.com/w3c/web-platform-tests:
+https://github.com/w3c/web-platform-tests as "wg-webrtc":
 
 
 == Adding a basic no-media call that uses promises. ==
