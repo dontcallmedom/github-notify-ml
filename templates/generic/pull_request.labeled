@@ -1,0 +1,7 @@
+[{{{repository.name}}}] Pull Request: {{{pull_request.title}}}
+{{{sender.login}}} has just labeled a pull request from {{{pull_request.user.login}}} for {{{repository.html_url}}}:
+
+== {{{pull_request.title}}} ==
+{{{pull_request.body}}}
+
+See {{{pull_request.html_url}}}

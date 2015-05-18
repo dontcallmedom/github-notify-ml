@@ -152,8 +152,11 @@ def serveRequest(config, postbody):
                 if event not in repo['events'] and (not repo_meta.has_key("branch") or event not in repo.get('branches', {}).get(repo_meta['branch'], [])):
                     continue
                 if repo.has_key("eventFilter"):
-                    if repo["eventFilter"]["label"] and len(filter(lambda x: x.get("name") == repo["eventFilter"]["label"], payload.get("issue", {}).get("labels", []))) == 0:
-                        continue
+                    labelTarget = payload.get("issue", payload.get("pull_request", {})).get("labels", [])
+                    labelFilter = lambda x: x.get("name") == repo["eventFilter"]["label"]
+                    if repo["eventFilter"]["label"]:
+                        if not labelFilter(payload.get("label", {})) and len(filter(labelFilter, labelTarget)) == 0:
+                            continue
                 try:
                     template = io.open(config["TEMPLATES_DIR"] + "/repos/" + formatedRepoName + "/%s" % event).read()
                 except IOError:
