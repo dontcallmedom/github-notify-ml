@@ -6,6 +6,10 @@
         "master": ["push"]
       }
    },
+   "w3c/web-platform-tests": {
+         "events": ["pull_request.opened", "pull_request.labeled"],
+         "eventFilter": {"label":"wg-webrtc"}
+   },
    "w3c/presentation-api": {
       "events": ["pull_request.opened"]
    },

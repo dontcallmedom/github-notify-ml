@@ -76,6 +76,9 @@ class SendEmailGithubTests(unittest.TestCase):
     def test_pull_notif(self, mock_smtp):
         self.do_operation("pull_request", "tests/pull-notif.json", {"dom@localhost": "tests/pull-notif.msg"}, mock_smtp)
 
+    @patch("smtplib.SMTP")
+    def test_pull_labeled_notif(self, mock_smtp):
+        self.do_operation("pull_request", "tests/pull-labeled.json", {"dom@localhost": "tests/pull-labeled.msg"}, mock_smtp)
 
     @patch("smtplib.SMTP")
     def test_unavailable_template(self, mock_smtp):
