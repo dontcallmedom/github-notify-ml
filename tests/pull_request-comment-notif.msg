@@ -15,3 +15,4 @@ I made a couple of minor comments, but overall this LGTM.
 GitHub Notif of comment by stefhak
 See 
 https://github.com/w3c/mediacapture-main/pull/150#issuecomment-83934826
+Special template!

@@ -8,7 +8,7 @@ import sys
 
 config={"SMTP_HOST":"localhost",
         "EMAIL_FROM":"test@localhost",
-        "TEMPLATES_DIR":"templates",
+        "TEMPLATES_DIR":"tests/templates",
         "GH_OAUTH_TOKEN":"foo",
         "mls": "tests/mls.json"
         }
