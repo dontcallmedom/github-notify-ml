@@ -1,0 +1,7 @@
+Re: [{{{repository.name}}}] {{{issue.title}}}
+{{{comment.body}}}
+
+-- 
+GitHub Notif of comment by {{{comment.user.login}}}
+See {{{comment.html_url}}}
+Special template!

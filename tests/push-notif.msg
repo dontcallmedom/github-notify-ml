@@ -6,6 +6,7 @@ To: dom@localhost
 Subject: [github-notify-ml] new commits pushed by dontcallmedom
 Message-ID: <push-d3cb75fab91fd7dec6cd8fff69063405d31c505b-1412783833-test@localhost>
 
+Per ml template!
 
 The following commits were just pushed by dontcallmedom to 
 https://github.com/dontcallmedom/github-notify-ml:

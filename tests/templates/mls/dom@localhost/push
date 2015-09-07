@@ -1,0 +1,10 @@
+[{{repository.name}}] new commits pushed by {{{pusher.name}}}
+Per ml template!
+The following commits were just pushed by {{{pusher.name}}} to {{{repository.html_url}}}:
+
+{{#commits}}
+* {{{message}}}
+  by {{{author.name}}}
+{{{url}}}
+
+{{/commits}}
