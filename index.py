@@ -33,7 +33,7 @@ def validate_repos(config):
         for (repo,data) in repos.iteritems():
             for e in data["events"]:
                 generic_template = config['TEMPLATES_DIR'] + '/generic/' + e
-                specific_template = config['TEMPLATES_DIR'] + '/repos/' + repo + '/' + e
+                specific_template = config['TEMPLATES_DIR'] + '/mls/' + ml + '/' + repo + '/' + e
                 if not (os.path.isfile(generic_template)
                         or os.path.isfile(specific_template)):
                     raise InvalidConfiguration("No template matching event %s defined in %s in %s (looked at %s and %s)" % (e, config['repos'], repo, generic_template, specific_template))
@@ -158,7 +158,7 @@ def serveRequest(config, postbody):
                         if not labelFilter(payload.get("label", {})) and len(filter(labelFilter, labelTarget)) == 0:
                             continue
                 try:
-                    template = io.open(config["TEMPLATES_DIR"] + "/repos/" + formatedRepoName + "/%s" % event).read()
+                    template = io.open(config["TEMPLATES_DIR"] + "/mls/" + ml + '/' + formatedRepoName + "/%s" % event).read()
                 except IOError:
                     try:
                         template = io.open(config["TEMPLATES_DIR"] + "/generic/%s" % event).read()
