@@ -42,3 +42,14 @@ W3C operates an instance of this service for WGs (and some CGs) repositories; if
   * new push to a branch (and if so, which branch(es))
 
 If you want to use specific text in the notifications, please provide a template as described above.
+
+## Testing
+Run the test suite with:
+```sh
+python test_webhook.py
+```
+
+A typical test consists of:
+* a JSON file with the payload of the github event to be tested
+* a .msg file that contains the email (with headers) expected to be sent by the webhook
+* a new method in `test_webhook.py` `SendEmailGithubTests` that binds the event name, with the JSON file, and the email message
