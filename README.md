@@ -28,6 +28,8 @@ In other words:
 
 Only events for which templates have been defined (in the `templates/generic` directory) will be notified. Each mail target can have customized templates by creating an `email@example.com` directory in `templates/mls` and having a file named after the event. Templates use Mustache-based pystache as their engines and are fed with payload data from the event. The first line of the template is used as the subject of the email.
 
+In addition to configuring targets of notifications, an instance of this webhook needs to define a `config.json` file with the SMTP host, the address from which messages will be sent, and set a GitHub OAUTH token that can be used to retrieve information via the GitHub API.
+
 ## W3C instance
 W3C operates an instance of this service for WGs (and some CGs) repositories; if you want to make use of this service, please contact dom@w3.org with the following information:
 * mailing list to which notifications should be sent
