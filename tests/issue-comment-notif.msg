@@ -12,6 +12,6 @@ https://docs.python.org/2/library/configparser.html
 
 
 -- 
-GitHub Notif of comment by dontcallmedom
-See 
+GitHub Notification of comment by dontcallmedom
+Please view or discuss this issue at
 https://github.com/dontcallmedom/github-notify-ml/issues/1#issuecomment-58886897
