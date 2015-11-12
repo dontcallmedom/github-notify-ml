@@ -2,5 +2,5 @@ Re: [{{{repository.name}}}] {{{issue.title}}}
 {{{comment.body}}}
 
 -- 
-GitHub Notif of comment by {{{comment.user.login}}}
-See {{{comment.html_url}}}
+GitHub Notification of comment by {{{comment.user.login}}}
+Please view or discuss this issue at {{{comment.html_url}}} using your GitHub account
