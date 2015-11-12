@@ -22,9 +22,9 @@ In other words:
 * each email address to which notifications are to be sent is a top level object
 * in email objects, each repos from which events need to be notified is an object
 * in repo objects, there are 3 potential fields:
-** `events` is an array of Github events applicable to the repo as a whole; only events in that array will be notified
-** `eventFilter` is an optional set of filters that are applied to the events above; at the moment, only a `label` filter is defined, which means that only events that are associated with the said label will be notified
-** `branches` allows to describe events that are applicable at the branch level rather than the whole repo (e.g. "push")
+  * `events` is an array of Github events applicable to the repo as a whole; only events in that array will be notified
+  * `eventFilter` is an optional set of filters that are applied to the events above; at the moment, only a `label` filter is defined, which means that only events that are associated with the said label will be notified
+  * `branches` allows to describe events that are applicable at the branch level rather than the whole repo (e.g. "push")
 
 Only events for which templates have been defined (in the `templates/generic` directory) will be notified. Each mail target can have customized templates by creating an `email@example.com` directory in `templates/mls` and having a file named after the event. Templates use Mustache-based pystache as their engines and are fed with payload data from the event. The first line of the template is used as the subject of the email.
 
@@ -33,10 +33,10 @@ W3C operates an instance of this service for WGs (and some CGs) repositories; if
 * mailing list to which notifications should be sent
 * name of the repo(s)
 * events that should be notified among:
-** creation of issue
-** closure of issue
-** creation of pull request
-** new comment on an issue
-** new push to a branch (and if so, which branch(es))
+  * creation of issue
+  * closure of issue
+  * creation of pull request
+  * new comment on an issue
+  * new push to a branch (and if so, which branch(es))
 
 If you want to use specific text in the notifications, please provide a template as described above.
