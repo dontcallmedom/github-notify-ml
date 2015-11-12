@@ -3,7 +3,7 @@ index.py is a python CGI script that provides a Webhook to be used as a github h
 The set of mailing lists, repos and events is configured in a JSON file, named `mls.json` that lives in the same directory as the webhook, with the following structure:
 ```json
 {
- 'email@example.com': {
+ "email@example.com": {
    "githubaccount/repo": {
       "events": ["issues.opened", "issues.closed", "issue_comment.created", "pull_request.opened", "pull_request.labeled"],
       "eventFilter": {"label":"important"}
@@ -12,7 +12,7 @@ The set of mailing lists, repos and events is configured in a JSON file, named `
       }
    }
   },
- 'email2@example.com': {
+ "email2@example.com": {
 
   }
 }
