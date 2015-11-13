@@ -194,7 +194,9 @@ def serveRequest(config, postbody):
                     headers['Authorization']="token %s" % (config["GH_OAUTH_TOKEN"])
                     frum_name = requests.get(payload['sender']['url'],
                                          headers=headers
-                                         ).json().get('name', payload['sender']['login'])
+                                         ).json()['name']
+                    if frum_name == None:
+                        frum_name = payload['sender']['login']
                     readable_frum.append('%s via GitHub' % (frum_name))
 
                 readable_frum.append('<%s>' % (frum), charset='us-ascii')
