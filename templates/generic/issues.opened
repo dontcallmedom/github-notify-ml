@@ -4,4 +4,4 @@
 == {{{issue.title}}} ==
 {{{issue.body}}}
 
-See {{{issue.html_url}}}
+Please view or discuss this issue at {{{issue.html_url}}} using your GitHub account
