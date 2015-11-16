@@ -14,4 +14,6 @@ https://github.com/dontcallmedom/github-notify-ml:
 (which formats to use? .ini, .json, .yaml?)
 
 
-Please view or discuss this issue at https://github.com/dontcallmedom/github-notify-ml/issues/1 using your GitHub account
+Please view or discuss this issue at 
+https://github.com/dontcallmedom/github-notify-ml/issues/1 using your 
+GitHub account
