@@ -31,17 +31,9 @@ Only events for which templates have been defined (in the `templates/generic` di
 In addition to configuring targets of notifications, an instance of this webhook needs to define a `config.json` file with the SMTP host, the address from which messages will be sent, and set a GitHub OAUTH token that can be used to retrieve information via the GitHub API.
 
 ## W3C instance
-W3C operates an instance of this service for WGs (and some CGs) repositories; if you want to make use of this service, please contact dom@w3.org with the following information:
-* mailing list to which notifications should be sent
-* name of the repo(s)
-* events that should be notified among:
-  * creation of issue
-  * closure of issue
-  * creation of pull request
-  * new comment on an issue
-  * new push to a branch (and if so, which branch(es))
+W3C operates an instance of this service for WGs (and some CGs) repositories; if you want to make use of this service, please send pull requests on <a href="https://github.com/w3c/github-notify-ml-config">w3c/github-notify-ml-config</a> with amendments to the <code>mls.json</code> file for the mailing list(s) and repo(s) you’re interested in.
 
-If you want to use specific text in the notifications, please provide a template as described above.
+If you want to use a different text in the notifications, you can also provide pull requests that bring special per mailing list templates as described above.
 
 ## Testing
 Run the test suite with:
