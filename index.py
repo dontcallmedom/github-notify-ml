@@ -229,7 +229,6 @@ def serveRequest(config, postbody):
 
 if __name__ == "__main__":
     config = json.loads(io.open('instance/config.json').read())
-    config["mls"] = "mls.json"
     validate_repos(config)
     if os.environ.has_key('SCRIPT_NAME'):
         print serveRequest(config, sys.stdin.read())
