@@ -15,6 +15,9 @@
    },
    "w3c/mediacapture-main": {
       "events": ["issue_comment.created"]
+   },
+   "w3c/webrtc-pc": {
+      "events": ["pull_request.closed"]
    }
  },
  "log@localhost": {

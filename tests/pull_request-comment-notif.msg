@@ -6,7 +6,7 @@ To: dom@localhost
 Subject: Re: [mediacapture-main] Update text for how constraint dictionaries get
  extended 
 Message-ID: <issue_comment.created-83934826-1426833268-test@localhost>
-In-Reply-To: <pull_request.opened-63087057-1426797727-test@localhost>
+In-Reply-To: <pull_request.opened-31564006-1426797727-test@localhost>
 
 I made a couple of minor comments, but overall this LGTM.
 

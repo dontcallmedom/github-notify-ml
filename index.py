@@ -74,13 +74,21 @@ def event_timestamp(event, payload):
     if ts:
         return timestamp(ts)
 
-def refevent(event, payload, target):
+def refevent(event, payload, target, oauth_token):
     if target=="issue" and event in ["issues.reopened", "issues.closed", "issue_comment.created"]:
         return ("issues.opened", payload["issue"]["id"])
     elif target=="pull_request" and event in ["pull_request.closed", "pull_request.reopened",
                    "pull_request.synchronized",
-                                              "pull_request_review_comment.created", "issue_comment.created"]:
-        return ("pull_request.opened", payload.get("pull_request", payload["issue"])["id"])
+                                              "pull_request_review_comment.created"]:
+        return ("pull_request.opened", payload["pull_request"]["id"])
+    elif target == "pull_request" and event == "issue_comment.created":
+        if oauth_token:
+            headers = {}
+            headers['Authorization']="token %s" % (oauth_token)
+            pr_id = requests.get(payload['issue']['pull_request']['url'],
+                                     headers=headers).json()['id']
+            if pr_id:
+                return ("pull_request.opened", pr_id)
     return (None,None)
 
 
@@ -178,8 +186,8 @@ def serveRequest(config, postbody):
                 frum = repo.get("email", {}).get("from", config["EMAIL_FROM"])
                 msgid = "<%s-%s-%s-%s>" % (event, event_id(event, payload),
                                            event_timestamp(event, payload), frum)
-                target = "pull_request" if payload.get("issue", {}).has_key("pull_request") else "issue"
-                (ref_event, ref_id) = refevent(event, payload, target)
+                target = "pull_request" if payload.has_key("pull_request") or payload.get("issue", {}).has_key("pull_request") else "issue"
+                (ref_event, ref_id) = refevent(event, payload, target, config.get("GH_OAUTH_TOKEN", False))
                 inreplyto = None
                 if ref_event and ref_id:
                     inreplyto = "<%s-%s-%s-%s>" % (ref_event, ref_id,

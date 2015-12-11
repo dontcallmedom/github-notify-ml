@@ -77,6 +77,10 @@ class SendEmailGithubTests(unittest.TestCase):
         self.do_operation("pull_request", "tests/pull-notif.json", {"dom@localhost": "tests/pull-notif.msg"}, mock_smtp)
 
     @patch("smtplib.SMTP")
+    def test_pull_closed_notif(self, mock_smtp):
+        self.do_operation("pull_request", "tests/pull-merged.json", {"dom@localhost": "tests/pull-merged.msg"}, mock_smtp)
+
+    @patch("smtplib.SMTP")
     def test_pull_labeled_notif(self, mock_smtp):
         self.do_operation("pull_request", "tests/pull-labeled.json", {"dom@localhost": "tests/pull-labeled.msg"}, mock_smtp)
 
