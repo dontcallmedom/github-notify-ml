@@ -65,6 +65,9 @@ class Server:
                       body=u'{"name":"Stefan Hakansson"}', content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/users/tobie',
                       body=u'{"name":"Tobie Langel"}', content_type='application/json')
+        responses.add(responses.GET, 'https://api.github.com/repos/w3c/mediacapture-main/pulls/150',
+                      body=u'{"id":31564006}', content_type='application/json')
+
         self.stop = threading.Event()
         server_address=('localhost',8000)
         handler = PythonCGIHTTPRequestHandler
