@@ -48,7 +48,14 @@ class PythonCGIHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         os.environ['REQUEST_METHOD'] = "POST"
-        os.environ['HTTP_X_GITHUB_EVENT'] = self.headers.get("X-Github-Event")
+        if self.headers.has_key("X-Github-Event"):
+            os.environ['HTTP_X_GITHUB_EVENT'] = self.headers["X-Github-Event"]
+        else:
+            os.environ.pop('HTTP_X_GITHUB_EVENT', None)
+        if self.headers.has_key("X-W3C-Webhook"):
+            os.environ['HTTP_X_W3C_WEBHOOK'] = self.headers["X-W3C-Webhook"]
+        else:
+            os.environ.pop('HTTP_X_W3C_WEBHOOK', None)
         os.environ['REMOTE_ADDR'] = self.headers.get("Remote-Addr", "127.0.0.1")
         self.rfile.flush()
         self.serve()
