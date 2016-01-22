@@ -32,11 +32,23 @@ class SendEmailGithubTests(unittest.TestCase):
         rv = requests.post('http://localhost:8000/', headers={'X-GitHub-Event':'ping', 'Remote-Addr': '128.0.0.1'})
         assert rv.status_code == 403
 
+    @patch("smtplib.SMTP")
+    def test_w3c_tr_published(self, mock_smtp):
+        data = io.open("tests/trpublished-notif.json").read()
+        rv = requests.post('http://localhost:8000/', headers={'X-W3C-Webhook': "https://example.org"}, data=data)
+        refs = {"dom@localhost": "tests/trpublished-notif.msg"}
+        instance = mock_smtp.return_value
+        self.assert_operation_results(rv, instance, refs)
 
-    def do_operation(self, operation, jsonf, refs, mock_smtp):
+
+
+    def do_gh_operation(self, operation, jsonf, refs, mock_smtp):
         data = io.open(jsonf).read()
         rv = requests.post('http://localhost:8000/', headers={'X-GitHub-Event': operation}, data=data)
         instance = mock_smtp.return_value
+        self.assert_operation_results(rv, instance, refs)
+
+    def assert_operation_results(self, rv, instance, refs):
         self.assertEqual(rv.status_code, 200)
         self.assertEqual(instance.sendmail.call_count, len(refs))
         i = 0
@@ -57,39 +69,38 @@ class SendEmailGithubTests(unittest.TestCase):
 
     @patch("smtplib.SMTP")
     def test_push_notif(self, mock_smtp):
-        self.do_operation("push", "tests/push-notif.json", {"dom@localhost": "tests/push-notif.msg"}, mock_smtp)
+        self.do_gh_operation("push", "tests/push-notif.json", {"dom@localhost": "tests/push-notif.msg"}, mock_smtp)
 
     @patch("smtplib.SMTP")
     def test_issue_notif(self, mock_smtp):
-        self.do_operation("issues", "tests/issue-notif.json", {"dom@localhost": "tests/issue-notif.msg", "log@localhost": "tests/issue-notif-log.msg"}, mock_smtp)
+        self.do_gh_operation("issues", "tests/issue-notif.json", {"dom@localhost": "tests/issue-notif.msg", "log@localhost": "tests/issue-notif-log.msg"}, mock_smtp)
 
     @patch("smtplib.SMTP")
     def test_issue_comment_notif(self, mock_smtp):
-        self.do_operation("issue_comment", "tests/issue-comment-notif.json", {"dom@localhost": "tests/issue-comment-notif.msg"}, mock_smtp)
+        self.do_gh_operation("issue_comment", "tests/issue-comment-notif.json", {"dom@localhost": "tests/issue-comment-notif.msg"}, mock_smtp)
 
     @patch("smtplib.SMTP")
     def test_pull_request_comment_notif(self, mock_smtp):
-        self.do_operation("issue_comment", "tests/pull_request-comment-notif.json", {"dom@localhost": "tests/pull_request-comment-notif.msg"}, mock_smtp)
+        self.do_gh_operation("issue_comment", "tests/pull_request-comment-notif.json", {"dom@localhost": "tests/pull_request-comment-notif.msg"}, mock_smtp)
 
 
     @patch("smtplib.SMTP")
     def test_pull_notif(self, mock_smtp):
-        self.do_operation("pull_request", "tests/pull-notif.json", {"dom@localhost": "tests/pull-notif.msg"}, mock_smtp)
+        self.do_gh_operation("pull_request", "tests/pull-notif.json", {"dom@localhost": "tests/pull-notif.msg"}, mock_smtp)
 
     @patch("smtplib.SMTP")
     def test_pull_closed_notif(self, mock_smtp):
-        self.do_operation("pull_request", "tests/pull-merged.json", {"dom@localhost": "tests/pull-merged.msg"}, mock_smtp)
+        self.do_gh_operation("pull_request", "tests/pull-merged.json", {"dom@localhost": "tests/pull-merged.msg"}, mock_smtp)
 
     @patch("smtplib.SMTP")
     def test_pull_labeled_notif(self, mock_smtp):
-        self.do_operation("pull_request", "tests/pull-labeled.json", {"dom@localhost": "tests/pull-labeled.msg"}, mock_smtp)
+        self.do_gh_operation("pull_request", "tests/pull-labeled.json", {"dom@localhost": "tests/pull-labeled.msg"}, mock_smtp)
 
     @patch("smtplib.SMTP")
     def test_unavailable_template(self, mock_smtp):
         data = io.open("tests/push-notif.json").read()
         rv = requests.post('http://localhost:8000/', headers={'X-GitHub-Event': "foobar"}, data=data)
         instance = mock_smtp.return_value
-        import sys
         self.assertEqual(rv.status_code, 500)
         self.assertEqual(instance.sendmail.call_count, 0)
 

@@ -1,0 +1,30 @@
+    {
+    "event": "tr.published",
+    "specversion": {
+        "status": "Working Draft",
+        "uri": "http:\/\/www.w3.org\/TR\/2016\/WD-shacl-ucr-20160122\/",
+        "date": "2016-01-22",
+        "informative": false,
+        "title": "SHACL Use Cases and Requirements",
+        "shortlink": "https:\/\/www.w3.org\/TR\/odor\/",
+        "editor_draft": "http:\/\/w3c.github.io\/data-shapes\/data-shapes-ucr\/",
+        "process_rules": "http:\/\/www.w3.org\/2015\/Process-20150901\/",
+        "_links": {
+            "self": {
+                "href": "https:\/\/api.w3.org\/specifications\/shacl-ucr\/versions\/20160122"
+            },
+            "editors": {
+                "href": "https:\/\/api.w3.org\/specifications\/shacl-ucr\/versions\/20160122\/editors"
+            },
+            "deliverers": {
+                "href": "https:\/\/api.w3.org\/specifications\/shacl-ucr\/versions\/20160122\/deliverers"
+            },
+            "specification": {
+                "href": "https:\/\/api.w3.org\/specifications\/shacl-ucr"
+            },
+            "predecessor-version": {
+                "href": "https:\/\/api.w3.org\/specifications\/shacl-ucr\/versions\/20160122\/predecessors"
+            }
+        }
+    }
+}

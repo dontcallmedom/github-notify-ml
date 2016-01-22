@@ -1,5 +1,8 @@
 {
- "dom@localhost": {
+    "dom@localhost": {
+        "https://www.w3.org/TR/odor": {
+            "events": ["tr.published"]
+        },
    "dontcallmedom/github-notify-ml": {
       "events": ["issues.opened", "issues.closed", "issue_comment.created", "pull_request.opened", "foobar"],
       "branches": {
