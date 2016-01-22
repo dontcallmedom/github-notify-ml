@@ -15,8 +15,6 @@ from email.mime.text import MIMEText
 from email.header import Header
 from email.generator import Generator
 import email.charset
-import pystache
-import textwrap
 from cStringIO import StringIO
 
 email.charset.add_charset('utf-8', email.charset.QP, email.charset.QP, 'utf-8')
@@ -101,9 +99,46 @@ def serveRequest(config, postbody):
     if request_method != 'POST':
         return
     if os.environ.has_key('HTTP_X_GITHUB_EVENT'):
-        return githubRequest(config,postbody)
+        return githubRequest(config, postbody)
+    elif os.environ.has_key('HTTP_X_W3C_WEBHOOK'):
+        return w3cRequest(config, postbody)
 
-def githubRequest(config,postbody):
+def w3cRequest(config, postbody):
+    mls = json.loads(io.open(config['mls'], 'r').read())
+
+    payload = json.loads(postbody)
+    event = payload["event"]
+
+    def trimTrailingSlash(s):
+        import re
+        return re.sub(r'/$', '', s)
+
+    trs = {}
+    tr_prefix = "https://www.w3.org/TR/"
+    for (ml, mltr) in mls.iteritems():
+        for (url, conf) in mltr.iteritems():
+            if (url[0:len(tr_prefix)] == tr_prefix):
+                url = trimTrailingSlash(url)
+                conf["email"] = {"to": ml}
+                if (event in conf["events"]):
+                    if not trs.has_key("url"):
+                        trs[url] = []
+                    trs[url].append(conf)
+    target = trimTrailingSlash(payload["specversion"]["shortlink"])
+    sentMail = []
+    errors = []
+    for conf in trs.get(target, []):
+        to = conf["email"].get("to").split(",")
+        template, error = loadTemplate(event, config["TEMPLATES_DIR"], '/mls/' + ml + '/')
+        if not template:
+            errors.append(error)
+            continue
+        from_addr = conf.get("email", {}).get("from", config["EMAIL_FROM"])
+        body, subject = mailFromTemplate(template, payload["specversion"])
+        sentMail.append(sendMail(config["SMTP_HOST"], body, from_addr, "W3C Webmaster via W3C API", to, subject))
+    return reportSentMail(sentMail, errors)
+
+def githubRequest(config, postbody):
     remote_addr = os.environ.get('HTTP_X_FORWARDED_FOR', os.environ.get('REMOTE_ADDR'))
 
     # Store the IP address blocks that github uses for hook requests.
@@ -127,11 +162,9 @@ def githubRequest(config,postbody):
         output += json.dumps({'msg': 'Hi!'})
         return output
     mls = json.loads(io.open(config['mls'], 'r').read())
-    repos = {}
     for (ml, mlrepos) in mls.iteritems():
         for (reponame, repoconf) in mlrepos.iteritems():
             repoconf["email"] = {"to":ml}
-            repos[reponame] = repoconf
     payload = json.loads(postbody)
     repo_meta = {
 	    'name': payload['repository'].get('name')
@@ -161,6 +194,9 @@ def githubRequest(config,postbody):
 
     for ml,repos in mls.iteritems():
         for reponame in filter(repoMatch, repos.keys()):
+            tr_prefix = "https://www.w3.org/TR/"
+            if reponame[0:len(tr_prefix)] == tr_prefix:
+                continue
             repo = repos[reponame]
 
             if event not in repo['events'] and (not repo_meta.has_key("branch") or event not in repo.get('branches', {}).get(repo_meta['branch'], [])):
@@ -171,22 +207,12 @@ def githubRequest(config,postbody):
                 if repo["eventFilter"]["label"]:
                     if not labelFilter(payload.get("label", {})) and len(filter(labelFilter, labelTarget)) == 0:
                         continue
-            try:
-                template = io.open(config["TEMPLATES_DIR"] + "/mls/" + ml + '/' + formatedRepoName + "/%s" % event).read()
-            except IOError:
-                try:
-                    template = io.open(config["TEMPLATES_DIR"] + "/mls/" + ml + "/%s" % event).read()
-                except IOError:
-                    try:
-                        template = io.open(config["TEMPLATES_DIR"] + "/generic/%s" % event).read()
-                    except IOError:
-                        errors.append({'msg': 'no template defined for event %s' % event})
-                        continue
-            body = pystache.render(template, payload)
-            subject, dummy, body = body.partition('\n')
-            paragraphs = body.splitlines()
-            wrapper = textwrap.TextWrapper( break_long_words=False, break_on_hyphens=False,  drop_whitespace=False)
-            body = "\n".join(map(wrapper.fill, paragraphs))
+
+            template, error = loadTemplate(event, config["TEMPLATES_DIR"], '/mls/' + ml + '/', formatedRepoName)
+            if not template:
+                errors.append(error)
+                continue
+            body, subject = mailFromTemplate(template, payload)
             frum = repo.get("email", {}).get("from", config["EMAIL_FROM"])
             msgid = "<%s-%s-%s-%s>" % (event, event_id(event, payload),
                                        event_timestamp(event, payload), frum)
@@ -211,19 +237,49 @@ def githubRequest(config,postbody):
                     frum_name = payload['sender']['login']
                 frum_name = '%s via GitHub' % (frum_name)
             sentMail.append(sendMail(config["SMTP_HOST"], body, frum, frum_name, too, subject, msgid, inreplyto))
-        if output:
-            output = "Content-Type: application/json\n\n"
-            output += json.dumps({'sent': sentMail})
-            return output
-        elif (len(errors)):
-            output += "Status: 500 Error processing the request\n"
-            output += "Content-Type: application/json\n\n"
-            output += json.dumps({'errors': errors})
-            return output
+    return reportSentMail(sentMail, errors)
 
-    output += "Content-Type: text/plain; charset=utf-8\n\n"
-    output += 'OK'
-    return output
+def reportSentMail(sentMail, errors):
+    if sentMail:
+        output = "Content-Type: application/json\n\n"
+        output += json.dumps({'sent': sentMail, 'errors': errors})
+        return output
+    elif (len(errors)):
+        output = "Status: 500 Error processing the request\n"
+        output += "Content-Type: application/json\n\n"
+        output += json.dumps({'errors': errors})
+        return output
+    else:
+        output = "Content-Type: application/json\n\n"
+        output += '"nothing done"'
+        return output
+
+
+def loadTemplate(name, rootpath, specificpath, optionalpath = ""):
+    error = None
+    template = None
+    try:
+        template = io.open(rootpath + specificpath + optionalpath + "/%s" % name).read()
+    except IOError:
+        try:
+            template = io.open(rootpath + specificpath + "/%s" % name).read()
+        except IOError:
+            try:
+                template = io.open(rootpath + "/generic/%s" % name).read()
+            except IOError:
+                error = {'msg': 'no template defined for event %s' % name}
+    return template, error
+
+
+def mailFromTemplate(template, payload):
+    import pystache
+    import textwrap
+    body = pystache.render(template, payload)
+    subject, dummy, body = body.partition('\n')
+    paragraphs = body.splitlines()
+    wrapper = textwrap.TextWrapper( break_long_words=False, break_on_hyphens=False,  drop_whitespace=False)
+    body = "\n".join(map(wrapper.fill, paragraphs))
+    return body, subject
 
 def sendMail(smtp, body, from_addr, from_name, to_addr, subject, msgid=None, inreplyto=None):
     s = smtplib.SMTP(smtp)
