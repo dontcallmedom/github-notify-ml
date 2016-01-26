@@ -1,0 +1,7 @@
+[{{{repository.name}}}] Issue: {{{issue.title}}}
+{{{sender.login}}} has just labeled an issue for {{{repository.html_url}}} as "{{{label.name}}}":
+
+== {{{issue.title}}} ==
+{{{issue.body}}}
+
+See {{{issue.html_url}}}
