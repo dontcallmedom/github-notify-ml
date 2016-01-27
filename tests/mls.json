@@ -1,6 +1,6 @@
 {
     "dom@localhost": {
-        "https://www.w3.org/TR/odor": {
+        "http://www.w3.org/TR/odor": {
             "events": ["tr.published"]
         },
    "dontcallmedom/github-notify-ml": {
