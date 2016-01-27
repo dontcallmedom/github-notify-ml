@@ -114,7 +114,7 @@ def w3cRequest(config, postbody):
         return re.sub(r'/$', '', s)
 
     trs = {}
-    tr_prefix = "https://www.w3.org/TR/"
+    tr_prefix = "http://www.w3.org/TR/"
     for (ml, mltr) in mls.iteritems():
         for (url, conf) in mltr.iteritems():
             if (url[0:len(tr_prefix)] == tr_prefix):
