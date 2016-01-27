@@ -194,7 +194,7 @@ def githubRequest(config, postbody):
 
     for ml,repos in mls.iteritems():
         for reponame in filter(repoMatch, repos.keys()):
-            tr_prefix = "https://www.w3.org/TR/"
+            tr_prefix = "http://www.w3.org/TR/"
             if reponame[0:len(tr_prefix)] == tr_prefix:
                 continue
             repo = repos[reponame]
