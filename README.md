@@ -8,7 +8,7 @@ The set of mailing lists, repos / TR documents and events is configured in a JSO
  "email@example.com": {
    "githubaccount/repo": {
       "events": ["issues.opened", "issues.closed", "issue_comment.created", "pull_request.opened", "pull_request.labeled"],
-      "eventFilter": {"label":"important"}
+      "eventFilter": {"label":"important"},
       "branches": {
         "master": ["push"]
       }
