@@ -35,7 +35,7 @@ def validate_repos(config):
                 specific_template = config['TEMPLATES_DIR'] + '/mls/' + ml + '/' + repo + '/' + e
                 if not (os.path.isfile(generic_template) or os.path.isfile(ml_template)
                         or os.path.isfile(specific_template)):
-                    raise InvalidConfiguration("No template matching event %s defined in %s in %s (looked at %s and %s)" % (e, config['repos'], repo, generic_template, specific_template))
+                    raise InvalidConfiguration("No template matching event %s defined in %s in %s (looked at %s and %s)" % (e, config['mls'], repo, generic_template, specific_template))
 
 def event_id(event, payload):
     if event.split(".")[0] == "issues":
