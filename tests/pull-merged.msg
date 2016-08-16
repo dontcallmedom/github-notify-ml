@@ -7,7 +7,7 @@ Subject: [webrtc-pc] Merged Pull Request: Use unsigned long ssrc in stats
 Message-ID: <pull_request.closed-53266014-1449763115-test@localhost>
 In-Reply-To: <pull_request.opened-53266014-1449758254-test@localhost>
 
-dontcallmedom has just merged pull request 433 for 
+alvestrand has just merged dontcallmedom's pull request 433 for 
 https://github.com/w3c/webrtc-pc:
 
 

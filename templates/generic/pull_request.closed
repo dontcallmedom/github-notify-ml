@@ -1,5 +1,5 @@
 [{{{repository.name}}}] {{#pull_request.merged}}Merged{{/pull_request.merged}}{{^pull_request.merged}}Closed{{/pull_request.merged}} Pull Request: {{{pull_request.title}}}
-{{{pull_request.user.login}}} has just {{#pull_request.merged}}merged{{/pull_request.merged}}{{^pull_request.merged}}closed{{/pull_request.merged}} pull request {{pull_request.number}} for {{{repository.html_url}}}:
+{{{sender.login}}} has just {{#pull_request.merged}}merged{{/pull_request.merged}}{{^pull_request.merged}}closed{{/pull_request.merged}} {{{pull_request.user.login}}}'s pull request {{pull_request.number}} for {{{repository.html_url}}}:
 
 == {{{pull_request.title}}} ==
 {{{pull_request.body}}}
