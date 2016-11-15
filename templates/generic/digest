@@ -1,0 +1,61 @@
+{{period}} digest of github activity ({{#repos}}{{shortname}},{{/repos}})
+
+
+Issues
+------
+{{#activeissuerepos}}
+* {{name}} (+{{newissues.count}}/-{{closedissues.count}}/💬{{issuecommentscount}})
+{{#newissues.count}}  {{.}} issues created:
+{{#newissues.list}}
+  - {{{payload.issue.title}}} (by {{actor.display_login}})
+    {{{payload.issue.html_url}}}
+{{/newissues.list}}
+
+{{/newissues.count}}
+{{#closedissues.count}}  {{.}} issues closed:
+{{#closedissues.list}}
+  - {{{payload.issue.title}}} {{{payload.issue.html_url}}}
+{{/closedissues.list}}
+
+{{/closedissues.count}}
+{{#commentedissues.count}}  {{.}} issues received {{issuecommentscount}} new comments:
+{{#commentedissues.list}}
+  - #{{number}} {{{title}}} ({{commentscount}} by {{#commentors}}{{.}},{{/commentors}})
+    {{{url}}}
+{{/commentedissues.list}}
+
+{{/commentedissues.count}}
+{{/activeissuerepos}}
+
+Pull requests
+-------------
+{{#activeprrepos}}
+* {{name}} (+{{newpr.count}}/-{{mergedpr.count}}/💬{{prcommentscount}})
+{{#newpr.count}}  {{.}} pull requests submitted:
+{{#newpr.list}}
+  - {{{payload.pull_request.title}}} (by {{actor.display_login}})
+    {{{payload.pull_request.html_url}}}
+{{/newpr.list}}
+
+{{/newpr.count}}
+{{#mergedpr.count}}  {{.}} pull requests merged:
+{{#mergedpr.list}}
+  - {{{payload.issue.title}}}
+    {{{payload.issue.html_url}}}
+{{/mergedpr.list}}
+
+{{/mergedpr.count}}
+{{#commentedpr.count}}  {{.}} pull requests received {{prcommentscount}} new comments:
+{{#commentedpr.list}}
+  - #{{number}} {{{title}}} ({{commentscount}} by {{#commentors}}{{.}},{{/commentors}})
+    {{{url}}}
+{{/commentedpr.list}}
+
+{{/commentedpr.count}}
+{{/activeprrepos}}
+
+Repositories tracked by this digest:
+-----------------------------------
+{{#repos}}
+* {{{url}}}
+{{/repos}}

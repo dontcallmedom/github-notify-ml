@@ -3,30 +3,33 @@
         "http://www.w3.org/TR/odor": {
             "events": ["tr.published"]
         },
-   "dontcallmedom/github-notify-ml": {
-      "events": ["issues.opened", "issues.closed", "issue_comment.created", "pull_request.opened", "foobar"],
-      "branches": {
-        "master": ["push"]
-      }
-   },
-   "w3c/web-platform-tests": {
-         "events": ["pull_request.opened", "pull_request.labeled"],
-         "eventFilter": {"label":"wg-webrtc"}
-   },
-   "w3c/presentation-api": {
-      "events": ["pull_request.opened"]
-   },
-   "w3c/mediacapture-main": {
-      "events": ["issue_comment.created"]
-   },
-   "w3c/webrtc-pc": {
-      "events": ["pull_request.closed"]
-   }
- },
- "log@localhost": {
-   "regexp:.*": {
-       "events": ["pull_request.opened", "issues.opened"],
-       "eventFilter": {"label":"enhancement"}
-   }
- }
+        "dontcallmedom/github-notify-ml": {
+            "events": ["issues.opened", "issues.closed", "issue_comment.created", "pull_request.opened"],
+            "branches": {
+                "master": ["push"]
+            }
+        },
+        "w3c/web-platform-tests": {
+            "events": ["pull_request.opened", "pull_request.labeled"],
+            "eventFilter": {"label":"wg-webrtc"}
+        },
+        "w3c/presentation-api": {
+            "events": ["pull_request.opened"]
+        },
+        "w3c/mediacapture-main": {
+            "events": ["issue_comment.created"]
+        },
+        "w3c/webrtc-pc": {
+            "events": ["pull_request.closed"]
+        },
+        "digest:daily": {
+            "repos": ["w3c/webrtc-pc"]
+        }
+    },
+    "log@localhost": {
+        "regexp:.*": {
+            "events": ["pull_request.opened", "issues.opened"],
+            "eventFilter": {"label":"enhancement"}
+        }
+    }
 }

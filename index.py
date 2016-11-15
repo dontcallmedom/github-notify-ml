@@ -29,7 +29,7 @@ def validate_repos(config):
     import os.path
     for (ml, repos) in mls.iteritems():
         for (repo,data) in repos.iteritems():
-            for e in data["events"]:
+            for e in data.get("events",[]):
                 generic_template = config['TEMPLATES_DIR'] + '/generic/' + e
                 ml_template = config['TEMPLATES_DIR'] + '/mls/' + ml + '/' + e
                 specific_template = config['TEMPLATES_DIR'] + '/mls/' + ml + '/' + repo + '/' + e
@@ -89,6 +89,105 @@ def refevent(event, payload, target, oauth_token):
                 return ("pull_request.opened", pr_id)
     return (None,None)
 
+def navigateGithubList(url, token, until, cumul = []):
+    headers = {}
+    headers['Authorization']="token %s" % token
+    githubListReq = requests.get(url, headers=headers)
+    pageList = githubListReq.json()
+    def posterior(item):
+        return until.strftime("%Y-%m-%dT%H:%M:%SZ") <= item["created_at"]
+    cumul = cumul + filter(posterior, pageList)
+    if posterior(pageList[-1]) and githubListReq.links.get("next", {}).has_key("url"):
+        return navigateGithubList(githubListReq.links["next"]["url"], token, until, cumul)
+    else:
+        return cumul
+
+def listGithubEvents(repo, token, until):
+    baseUrl = "https://api.github.com/repos/%s/" % repo
+    events = {}
+    events["repo"] = navigateGithubList(baseUrl + "events", token, until)
+    #events["issues"] = navigateGithubList(baseUrl + "issues/events", token, until)
+    return events
+
+def extractDigestInfo(events):
+    def listify(l):
+        return {"count": len(l), "list":l }
+
+    data = {}
+    isIssue = lambda x: x.get("type") == "IssuesEvent"
+    isPR = lambda x: x.get("type") == "PullRequestEvent"
+    isComment = lambda x: x.get("type") == "IssueCommentEvent"
+    isNew = lambda x: x.get("payload",{}).get("action") == "opened"
+    isCreated = lambda x: x.get("payload",{}).get("action") == "created"
+    isClosed = lambda x: x.get("payload",{}).get("action") == "closed"
+    isMerged = lambda x: x.get("payload",{}).get("pull_request",{}).get("merged")
+
+    newissues = filter(isNew, filter(isIssue, events["repo"]))
+    closedissues = filter(isClosed, filter(isIssue, events["repo"]))
+    newpr = filter(isNew, filter(isPR, events["repo"]))
+    mergedpr = filter(isMerged, filter(isClosed, filter(isPR, events["repo"])))
+
+    issuecomments = filter(isCreated, filter(isComment, events["repo"]))
+    commentedissues = {}
+    for comment in issuecomments:
+        number = comment["payload"]["issue"]["number"]
+        if not commentedissues.has_key(number):
+            issue = {}
+            issue["number"] = number
+            issue["title"] = comment["payload"]["issue"]["title"]
+            issue["url"] = comment["payload"]["issue"]["html_url"]
+            issue["commentscount"] = 0
+            issue["commentors"] = set()
+            issue["ispr"] = comment["payload"]["issue"].has_key("pull_request")
+            commentedissues[number] = issue
+        commentedissues[number]["commentscount"] += 1
+        commentedissues[number]["commentors"].add(comment["actor"]["display_login"])
+
+    data["newissues"] = listify(newissues)
+    data["closedissues"] = listify(closedissues)
+    data["commentedissues"] = listify(sorted(filter(lambda x: not x["ispr"], commentedissues.values()), key=lambda issue: -issue["commentscount"]))
+    data["issuecommentscount"] = reduce(lambda a,b: a + b["commentscount"], data["commentedissues"]["list"], 0)
+    data["newpr"] = listify(newpr)
+    data["mergedpr"] = listify(mergedpr)
+    data["commentedpr"] = listify(sorted(filter(lambda x: x["ispr"], commentedissues.values()), key=lambda issue: -issue["commentscount"]))
+    data["prcommentscount"] = reduce(lambda a,b: a + b["commentscount"], data["commentedpr"]["list"], 0)
+    data["activeissue"] = len(newissues) > 0 or len(closedissues) >0 or data["issuecommentscount"] > 0
+    data["activepr"] = data["prcommentscount"] > 0 or len(newpr) > 0 or len(mergedpr) > 0
+    return data
+
+def sendDigest(config, period="daily"):
+    from datetime import datetime, timedelta
+    if period == "weekly":
+        until = datetime.now() - timedelta(7)
+    else:
+        until = datetime.now() - timedelta(1)
+    mls = json.loads(io.open(config['mls'], 'r').read())
+    token = config.get("GH_OAUTH_TOKEN", False)
+    digests = {}
+    for (ml, target) in mls.iteritems():
+        if target.has_key("digest:%s" % period):
+            digests[ml] = target["digest:%s" % period]["repos"]
+    for (ml, repos) in digests.iteritems():
+        events = {}
+        events["repos"] = map(lambda r: {"name": r, "shortname": r.split("/")[1], "url": "https://github.com/" + r}, repos)
+        events["activeissuerepos"] = []
+        events["activeprrepos"] = []
+        events["period"] = period.capitalize()
+        for repo in repos:
+            data = extractDigestInfo(listGithubEvents(repo, token, until))
+            data["name"] = repo
+            if data["activeissue"]:
+                events["activeissuerepos"].append(data)
+            if data["activepr"]:
+                events["activeprrepos"].append(data)
+        if len(events["activeissuerepos"]) > 0 or len(events["activeprrepos"]) > 0:
+            template, error = loadTemplate("digest", config["TEMPLATES_DIR"], '/mls/' + ml + '/', period)
+            if not template:
+                raise InvalidConfiguration("No template for %s digest targeted at %s" % (period, ml))
+            from_addr = config.get("email", {}).get("from", config["EMAIL_FROM"])
+            body, subject = mailFromTemplate(template, events)
+            to = ml.split(",")
+            sendMail(config["SMTP_HOST"], body, from_addr, "W3C Webmaster via GitHub API", to, subject)
 
 def serveRequest(config, postbody):
     request_method = os.environ.get('REQUEST_METHOD', "GET")
@@ -195,7 +294,10 @@ def githubRequest(config, postbody):
     for ml,repos in mls.iteritems():
         for reponame in filter(repoMatch, repos.keys()):
             tr_prefix = "http://www.w3.org/TR/"
+            digest_prefix = "digest:"
             if reponame[0:len(tr_prefix)] == tr_prefix:
+                continue
+            if reponame[0:len(digest_prefix)] == digest_prefix:
                 continue
             repo = repos[reponame]
 
@@ -310,4 +412,6 @@ if __name__ == "__main__":
     validate_repos(config)
     if os.environ.has_key('SCRIPT_NAME'):
         print serveRequest(config, sys.stdin.read())
-
+    else:
+        period = sys.argv[1] if len(sys.argv) > 1 else None
+        sendDigest(config, period)
