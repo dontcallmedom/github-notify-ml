@@ -22,7 +22,7 @@
         "w3c/webrtc-pc": {
             "events": ["pull_request.closed"]
         },
-        "digest:daily": {
+        "digest:weekly": {
             "repos": ["w3c/webrtc-pc"]
         }
     },
