@@ -5,7 +5,6 @@ import json
 import requests
 import io
 import sys
-import quopri
 from test_server import Server
 
 # depends on mocking responses to request via https://github.com/dropbox/responses
