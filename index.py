@@ -308,9 +308,14 @@ def githubRequest(config, postbody):
             if event not in repo['events'] and (not repo_meta.has_key("branch") or event not in repo.get('branches', {}).get(repo_meta['branch'], [])):
                 continue
             if repo.has_key("eventFilter"):
+                labels = repo["eventFilter"]["label"]
+                # backwards compat, since initially this took a single string
+                # see https://github.com/dontcallmedom/github-notify-ml/issues/22
+                if labels and not type(labels) == list:
+                    labels = [labels]
                 labelTarget = payload.get("issue", payload.get("pull_request", {})).get("labels", [])
-                labelFilter = lambda x: x.get("name") == repo["eventFilter"]["label"]
-                if repo["eventFilter"]["label"]:
+                labelFilter = lambda x: x.get("name") in labels
+                if labels:
                     if not labelFilter(payload.get("label", {})) and len(filter(labelFilter, labelTarget)) == 0:
                         continue
 

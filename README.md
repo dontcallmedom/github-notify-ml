@@ -8,7 +8,7 @@ The set of mailing lists, repos / TR documents and events is configured in a JSO
  "email@example.com": {
    "githubaccount/repo": {
       "events": ["issues.opened", "issues.closed", "issue_comment.created", "pull_request.opened", "pull_request.labeled"],
-      "eventFilter": {"label":"important"},
+      "eventFilter": {"label":["important"]},
       "branches": {
         "master": ["push"]
       }
@@ -27,7 +27,7 @@ In other words:
 * in email objects, each repos / TR draft from which events need to be notified is an object
 * in repo objects, there are 3 potential fields:
   * `events` is an array of Github events applicable to the repo as a whole; only events in that array will be notified
-  * `eventFilter` is an optional set of filters that are applied to the events above; at the moment, only a `label` filter is defined, which means that only events that are associated with the said label will be notified
+  * `eventFilter` is an optional set of filters that are applied to the events above; at the moment, only a `label` filter is defined, which means that only events that are associated with one of the said labels (defined as an array) will be notified
   * `branches` allows to describe events that are applicable at the branch level rather than the whole repo (e.g. "push")
 * TR draft objects only take an `events` field, with `"tr.published"` currently the only supported event.
 
