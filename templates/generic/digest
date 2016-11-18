@@ -1,4 +1,4 @@
-{{period}} digest of github activity ({{#repos}}{{shortname}}, {{/repos}})
+{{period}} digest of github activity ({{#repos}}{{shortname}}{{^last}}, {{/last}}{{/repos}})
 
 
 Issues
@@ -20,7 +20,7 @@ Issues
 {{/closedissues.count}}
 {{#commentedissues.count}}  {{.}} issues received {{issuecommentscount}} new comments:
 {{#commentedissues.list}}
-  - #{{number}} {{{title}}} ({{commentscount}} by {{#commentors}}{{.}}, {{/commentors}})
+  - #{{number}} {{{title}}} ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}})
     {{{url}}}
 {{/commentedissues.list}}
 
@@ -47,7 +47,7 @@ Pull requests
 {{/mergedpr.count}}
 {{#commentedpr.count}}  {{.}} pull requests received {{prcommentscount}} new comments:
 {{#commentedpr.list}}
-  - #{{number}} {{{title}}} ({{commentscount}} by {{#commentors}}{{.}}, {{/commentors}})
+  - #{{number}} {{{title}}} ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}})
     {{{url}}}
 {{/commentedpr.list}}
 

@@ -109,9 +109,12 @@ def listGithubEvents(repo, token, until):
     #events["issues"] = navigateGithubList(baseUrl + "issues/events", token, until)
     return events
 
+
 def extractDigestInfo(events):
     def listify(l):
         return {"count": len(l), "list":l }
+    def andify(l):
+        return [{"name":x, "last": i ==len(l) -1} for i,x in enumerate(l)]
 
     data = {}
     isIssue = lambda x: x.get("type") == "IssuesEvent"
@@ -142,7 +145,8 @@ def extractDigestInfo(events):
             commentedissues[number] = issue
         commentedissues[number]["commentscount"] += 1
         commentedissues[number]["commentors"].add(comment["actor"]["display_login"])
-
+    for number, issue in commentedissues.iteritems():
+        commentedissues[number]["commentors"] = andify(commentedissues[number]["commentors"])
     data["newissues"] = listify(newissues)
     data["closedissues"] = listify(closedissues)
     data["commentedissues"] = listify(sorted(filter(lambda x: not x["ispr"], commentedissues.values()), key=lambda issue: -issue["commentscount"]))
@@ -169,7 +173,7 @@ def sendDigest(config, period="daily"):
             digests[ml] = target["digest:%s" % period]["repos"]
     for (ml, repos) in digests.iteritems():
         events = {}
-        events["repos"] = map(lambda r: {"name": r, "shortname": r.split("/")[1], "url": "https://github.com/" + r}, repos)
+        events["repos"] = [{"name": r, "shortname": r.split("/")[1], "url": "https://github.com/" + r, "last": i==len(repos)-1} for i,r in enumerate(repos)]
         events["activeissuerepos"] = []
         events["activeprrepos"] = []
         events["period"] = period.capitalize()

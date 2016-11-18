@@ -3,7 +3,7 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 From: =?utf-8?q?W3C_Webmaster_via_GitHub_API?= <test@localhost>
 To: dom@localhost
-Subject: Weekly digest of github activity (webrtc-pc, )
+Subject: Weekly digest of github activity (webrtc-pc)
 
 
 
@@ -33,17 +33,17 @@ https://github.com/w3c/webrtc-pc/issues/888
 
   5 issues received 12 new comments:
   - #888 Section 6.2:  Issue 3 - buffered data at transport close (5 
-by jesup, feross, taylor-b, alvestrand, )
+by jesup, feross, taylor-b, alvestrand)
     https://github.com/w3c/webrtc-pc/issues/888
   - #714 STUN/TURN OAuth token auth parameter passing (3 by juberti, 
-misi, )
+misi)
     https://github.com/w3c/webrtc-pc/issues/714
   - #803 Rules for negotiation-needed flag need to be updated for 
-transceivers. (2 by taylor-b, aboba, )
+transceivers. (2 by taylor-b, aboba)
     https://github.com/w3c/webrtc-pc/issues/803
-  - #942 Meta: auto-publish changes to the spec (1 by henbos, )
+  - #942 Meta: auto-publish changes to the spec (1 by henbos)
     https://github.com/w3c/webrtc-pc/issues/942
-  - #927 What happens when setDirection() is called (1 by taylor-b, )
+  - #927 What happens when setDirection() is called (1 by taylor-b)
     https://github.com/w3c/webrtc-pc/issues/927
 
 
@@ -79,24 +79,23 @@ Pull requests
 
   7 pull requests received 10 new comments:
   - #944 Effect of setting sender.track to null (4 by pthatcherg, 
-aboba, )
+aboba)
     https://github.com/w3c/webrtc-pc/pull/944
   - #929 Have RTCSessionDescription's sdp member default to "" (1 by 
-jan-ivar, )
+jan-ivar)
     https://github.com/w3c/webrtc-pc/pull/929
-  - #939 Removed "stopped" from removeTrack (1 by aboba, )
+  - #939 Removed "stopped" from removeTrack (1 by aboba)
     https://github.com/w3c/webrtc-pc/pull/939
-  - #940 Use of "stopped" in insertDTMF and replaceTrack (1 by aboba, 
-)
+  - #940 Use of "stopped" in insertDTMF and replaceTrack (1 by aboba)
     https://github.com/w3c/webrtc-pc/pull/940
   - #920 Revise text dealing with with the ICE Agent/User Agent 
-interactions. (1 by aboba, )
+interactions. (1 by aboba)
     https://github.com/w3c/webrtc-pc/pull/920
   - #946 Splitting transceiver direction into "direction" and 
-"currentDirection". (1 by aboba, )
+"currentDirection". (1 by aboba)
     https://github.com/w3c/webrtc-pc/pull/946
   - #919 Removing incorrect statement related to IP leaking issue. (1 
-by vivienlacourba, )
+by vivienlacourba)
     https://github.com/w3c/webrtc-pc/pull/919
 
 
