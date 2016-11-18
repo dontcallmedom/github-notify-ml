@@ -4,7 +4,7 @@
             "events": ["tr.published"]
         },
         "dontcallmedom/github-notify-ml": {
-            "events": ["issues.opened", "issues.closed", "issue_comment.created", "pull_request.opened"],
+            "events": ["issues.opened", "issues.closed", "issue_comment.created", "pull_request.opened", "foobar"],
             "branches": {
                 "master": ["push"]
             }
