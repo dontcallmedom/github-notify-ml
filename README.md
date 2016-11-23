@@ -18,7 +18,11 @@ The set of mailing lists, repos / TR documents and events is configured in a JSO
    "http://www.w3.org/TR/wake-lock": {
        "events": ["tr.published"]
     }
-  }
+  },
+ "email3@example.com": {
+   "digest:weekly": {
+     "repos": ["githubaccount/repo", "githubaccount/repo2"]
+   }
 }
 ```
 
