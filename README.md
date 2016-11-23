@@ -23,6 +23,7 @@ The set of mailing lists, repos / TR documents and events is configured in a JSO
    "digest:weekly": {
      "repos": ["githubaccount/repo", "githubaccount/repo2"]
    }
+  }
 }
 ```
 
