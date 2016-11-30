@@ -418,7 +418,16 @@ def sendMail(smtp, body, from_addr, from_name, to_addr, subject, msgid=None, inr
 
 if __name__ == "__main__":
     config = json.loads(io.open('instance/config.json').read())
-    validate_repos(config)
+    try:
+        validate_repos(config)
+    except InvalidConfiguration as err:
+        if os.environ.has_key('SCRIPT_NAME'):
+            output = "Status: 500 Error processing the request\n"
+            output += "Content-Type: application/json\n\n"
+            output += json.dumps({'errors': [err]})
+            print output
+        else:
+            sys.stderr.write(err)
     if os.environ.has_key('SCRIPT_NAME'):
         print serveRequest(config, sys.stdin.read())
     else:
