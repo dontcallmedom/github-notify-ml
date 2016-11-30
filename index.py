@@ -424,10 +424,10 @@ if __name__ == "__main__":
         if os.environ.has_key('SCRIPT_NAME'):
             output = "Status: 500 Error processing the request\n"
             output += "Content-Type: application/json\n\n"
-            output += json.dumps({'errors': [err]})
+            output += json.dumps({'errors': [err.args[0]]})
             print output
         else:
-            sys.stderr.write(err)
+            sys.stderr.write(err.args[0])
     if os.environ.has_key('SCRIPT_NAME'):
         print serveRequest(config, sys.stdin.read())
     else:
