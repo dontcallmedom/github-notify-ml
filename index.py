@@ -428,6 +428,7 @@ if __name__ == "__main__":
             print output
         else:
             sys.stderr.write(err.args[0])
+        sys.exit(1)
     if os.environ.has_key('SCRIPT_NAME'):
         print serveRequest(config, sys.stdin.read())
     else:
