@@ -97,7 +97,7 @@ def navigateGithubList(url, token, until, cumul = []):
     def posterior(item):
         return until.strftime("%Y-%m-%dT%H:%M:%SZ") <= item["created_at"]
     cumul = cumul + filter(posterior, pageList)
-    if posterior(pageList[-1]) and githubListReq.links.get("next", {}).has_key("url"):
+    if len(pageList) and posterior(pageList[-1]) and githubListReq.links.get("next", {}).has_key("url"):
         return navigateGithubList(githubListReq.links["next"]["url"], token, until, cumul)
     else:
         return cumul
