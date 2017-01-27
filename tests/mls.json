@@ -24,11 +24,12 @@
         },
         "digest:weekly": [
             {
-            "repos": ["w3c/webrtc-pc"]
+                "repos": ["w3c/webrtc-pc"]
             },
             {
                 "repos": ["w3c/webrtc-pc"],
-                "eventFilter": {"label": ["PR exists"]}
+                "eventFilter": {"label": ["PR exists"]},
+                "topic": "Issues with proposed edits"
             }
         ]
     },

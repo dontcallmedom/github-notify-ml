@@ -3,7 +3,7 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 From: =?utf-8?q?W3C_Webmaster_via_GitHub_API?= <test@localhost>
 To: dom@localhost
-Subject: Weekly digest of filtered github activity (webrtc-pc)
+Subject: Weekly digest of filtered github activity (Issues with proposed edits)
 
 
 Events filtered by label "PR exists"
