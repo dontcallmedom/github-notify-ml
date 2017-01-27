@@ -2,4 +2,6 @@ language: python
 python:
  - "2.7"
 install: "pip install -r requirements.txt"
-script: python test_webhook.py
+script:
+  - python test_webhook.py
+  - python test_digest.py
