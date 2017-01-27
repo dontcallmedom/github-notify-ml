@@ -195,6 +195,7 @@ def sendDigest(config, period="daily"):
                     events["activeprrepos"].append(data)
                 events["filtered"] = d.get("eventFilter", None)
                 events["labels"] = andify(d.get("eventFilter", {}).get("label", []))
+                events["topic"] = d.get("topic", None)
             if len(events["activeissuerepos"]) > 0 or len(events["activeprrepos"]) > 0:
                 template, error = loadTemplate("digest", config["TEMPLATES_DIR"], '/mls/' + ml + '/', period)
                 if not template:

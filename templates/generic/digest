@@ -1,4 +1,4 @@
-{{period}} digest of {{#filtered}}filtered {{/filtered}}github activity ({{#repos}}{{shortname}}{{^last}}, {{/last}}{{/repos}})
+{{period}} digest of {{#filtered}}filtered {{/filtered}}github activity ({{#topic}}{{.}}{{/topic}}{{^topic}}{{#repos}}{{shortname}}{{^last}}, {{/last}}{{/repos}}{{/topic}})
 
 {{#filtered}}Events filtered by label {{#labels}}"{{name}}"{{^last}}, {{/last}}{{/labels}}{{/filtered}}
 Issues
