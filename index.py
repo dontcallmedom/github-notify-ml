@@ -109,12 +109,13 @@ def listGithubEvents(repo, token, until):
     #events["issues"] = navigateGithubList(baseUrl + "issues/events", token, until)
     return events
 
+def andify(l):
+    return [{"name":x, "last": i ==len(l) -1} for i,x in enumerate(l)]
 
-def extractDigestInfo(events):
+
+def extractDigestInfo(events, eventFilter=None):
     def listify(l):
         return {"count": len(l), "list":l }
-    def andify(l):
-        return [{"name":x, "last": i ==len(l) -1} for i,x in enumerate(l)]
 
     data = {}
     isIssue = lambda x: x.get("type") == "IssuesEvent"
@@ -125,12 +126,16 @@ def extractDigestInfo(events):
     isClosed = lambda x: x.get("payload",{}).get("action") == "closed"
     isMerged = lambda x: x.get("payload",{}).get("pull_request",{}).get("merged")
 
-    newissues = filter(isNew, filter(isIssue, events["repo"]))
-    closedissues = filter(isClosed, filter(isIssue, events["repo"]))
-    newpr = filter(isNew, filter(isPR, events["repo"]))
-    mergedpr = filter(isMerged, filter(isClosed, filter(isPR, events["repo"])))
+    filtered_events = events["repo"]
+    if (eventFilter):
+        filtered_events = filter(lambda x: filter_event_payload(eventFilter, x.get("payload", {})), events["repo"])
 
-    issuecomments = filter(isCreated, filter(isComment, events["repo"]))
+    newissues = filter(isNew, filter(isIssue, filtered_events))
+    closedissues = filter(isClosed, filter(isIssue, filtered_events))
+    newpr = filter(isNew, filter(isPR, filtered_events))
+    mergedpr = filter(isMerged, filter(isClosed, filter(isPR, filtered_events)))
+
+    issuecomments = filter(isCreated, filter(isComment, filtered_events))
     commentedissues = {}
     for comment in issuecomments:
         number = comment["payload"]["issue"]["number"]
@@ -247,6 +252,21 @@ def w3cRequest(config, postbody):
         sentMail.append(sendMail(config["SMTP_HOST"], body, from_addr, "W3C Webmaster via W3C API", to, subject))
     return reportSentMail(sentMail, errors)
 
+def filter_event_payload(eventFilter, payload):
+    labels = eventFilter["label"]
+    # backwards compat, since initially this took a single string
+    # see https://github.com/dontcallmedom/github-notify-ml/issues/22
+    if labels and not type(labels) == list:
+        labels = [labels]
+    labelTarget = payload.get("issue", payload.get("pull_request", {})).get("labels", [])
+    labelFilter = lambda x: x.get("name") in labels
+    if labels:
+        if labelFilter(payload.get("label", {})):
+            return payload
+        return filter(labelFilter, labelTarget)
+    return payload
+
+
 def githubRequest(config, postbody):
     remote_addr = os.environ.get('HTTP_X_FORWARDED_FOR', os.environ.get('REMOTE_ADDR'))
 
@@ -273,7 +293,9 @@ def githubRequest(config, postbody):
     mls = json.loads(io.open(config['mls'], 'r').read())
     for (ml, mlrepos) in mls.iteritems():
         for (reponame, repoconf) in mlrepos.iteritems():
-            repoconf["email"] = {"to":ml}
+            # don't fail on digests which takes a list rather than a dict
+            if type(repoconf) != list:
+                repoconf["email"] = {"to":ml}
     payload = json.loads(postbody)
     repo_meta = {
 	    'name': payload['repository'].get('name')
@@ -314,16 +336,9 @@ def githubRequest(config, postbody):
             if event not in repo['events'] and (not repo_meta.has_key("branch") or event not in repo.get('branches', {}).get(repo_meta['branch'], [])):
                 continue
             if repo.has_key("eventFilter"):
-                labels = repo["eventFilter"]["label"]
-                # backwards compat, since initially this took a single string
-                # see https://github.com/dontcallmedom/github-notify-ml/issues/22
-                if labels and not type(labels) == list:
-                    labels = [labels]
-                labelTarget = payload.get("issue", payload.get("pull_request", {})).get("labels", [])
-                labelFilter = lambda x: x.get("name") in labels
-                if labels:
-                    if not labelFilter(payload.get("label", {})) and len(filter(labelFilter, labelTarget)) == 0:
-                        continue
+                relevant_payload = filter_event_payload(repo["eventFilter"], payload)
+                if not relevant_payload:
+                    continue
 
             template, error = loadTemplate(event, config["TEMPLATES_DIR"], '/mls/' + ml + '/', formatedRepoName)
             if not template:
