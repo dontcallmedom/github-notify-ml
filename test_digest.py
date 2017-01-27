@@ -37,13 +37,14 @@ class SendEmailGithubTests(unittest.TestCase):
     @patch("smtplib.SMTP")
     def test_weekly_digest(self, mock_smtp):
         instance = mock_smtp.return_value
-        refs = {"dom@localhost":"tests/digest-weekly.msg"}
+        refs = [{"dom@localhost":"tests/digest-weekly.msg"}, {"dom@localhost":"tests/digest-weekly-filtered.msg"}]
         sendDigest(config, "weekly")
         self.assertEqual(instance.sendmail.call_count, len(refs))
+        counter = 0
         for (name, args, kwargs) in instance.sendmail.mock_calls:
             self.assertEqual(args[0], u"test@localhost")
-            self.assertIn(args[1][0], refs)
-            msg = io.open(refs[args[1][0]]).read()
+            self.assertIn(args[1][0], refs[counter])
+            msg = io.open(refs[counter][args[1][0]]).read()
 
             self.maxDiff = None
             import email
@@ -54,7 +55,7 @@ class SendEmailGithubTests(unittest.TestCase):
             ref_body = "\n".join(msg.split("\n\n")[1:])
             self.assertMultiLineEqual(sent_headers, ref_headers)
             self.assertMultiLineEqual(sent_body, ref_body)
-
+            counter = counter + 1
 
 if __name__ == '__main__':
     unittest.main()

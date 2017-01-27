@@ -22,9 +22,15 @@
         "w3c/webrtc-pc": {
             "events": ["pull_request.closed"]
         },
-        "digest:weekly": {
+        "digest:weekly": [
+            {
             "repos": ["w3c/webrtc-pc"]
-        }
+            },
+            {
+                "repos": ["w3c/webrtc-pc"],
+                "eventFilter": {"label": ["PR exists"]}
+            }
+        ]
     },
     "log@localhost": {
         "regexp:.*": {

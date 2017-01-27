@@ -1,6 +1,6 @@
-{{period}} digest of github activity ({{#repos}}{{shortname}}{{^last}}, {{/last}}{{/repos}})
+{{period}} digest of {{#filtered}}filtered {{/filtered}}github activity ({{#repos}}{{shortname}}{{^last}}, {{/last}}{{/repos}})
 
-
+{{#filtered}}Events filtered by label {{#labels}}"{{name}}"{{^last}}, {{/last}}{{/labels}}{{/filtered}}
 Issues
 ------
 {{#activeissuerepos}}
