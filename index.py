@@ -170,28 +170,34 @@ def sendDigest(config, period="daily"):
     digests = {}
     for (ml, target) in mls.iteritems():
         if target.has_key("digest:%s" % period):
-            digests[ml] = target["digest:%s" % period]["repos"]
-    for (ml, repos) in digests.iteritems():
-        events = {}
-        events["repos"] = [{"name": r, "shortname": r.split("/")[1], "url": "https://github.com/" + r, "last": i==len(repos)-1} for i,r in enumerate(repos)]
-        events["activeissuerepos"] = []
-        events["activeprrepos"] = []
-        events["period"] = period.capitalize()
-        for repo in repos:
-            data = extractDigestInfo(listGithubEvents(repo, token, until))
-            data["name"] = repo
-            if data["activeissue"]:
-                events["activeissuerepos"].append(data)
-            if data["activepr"]:
-                events["activeprrepos"].append(data)
-        if len(events["activeissuerepos"]) > 0 or len(events["activeprrepos"]) > 0:
-            template, error = loadTemplate("digest", config["TEMPLATES_DIR"], '/mls/' + ml + '/', period)
-            if not template:
-                raise InvalidConfiguration("No template for %s digest targeted at %s" % (period, ml))
-            from_addr = config.get("email", {}).get("from", config["EMAIL_FROM"])
-            body, subject = mailFromTemplate(template, events)
-            to = ml.split(",")
-            sendMail(config["SMTP_HOST"], body, from_addr, "W3C Webmaster via GitHub API", to, subject)
+            digests[ml] = target["digest:%s" % period]
+            if not isinstance(digests[ml], list):
+                digests[ml] = [digests[ml]]
+    for (ml, digest) in digests.iteritems():
+        for d in digest:
+            repos = d["repos"]
+            events = {}
+            events["repos"] = [{"name": r, "shortname": r.split("/")[1], "url": "https://github.com/" + r, "last": i==len(repos)-1} for i,r in enumerate(repos)]
+            events["activeissuerepos"] = []
+            events["activeprrepos"] = []
+            events["period"] = period.capitalize()
+            for repo in repos:
+                data = extractDigestInfo(listGithubEvents(repo, token, until), d.get("eventFilter", None))
+                data["name"] = repo
+                if data["activeissue"]:
+                    events["activeissuerepos"].append(data)
+                if data["activepr"]:
+                    events["activeprrepos"].append(data)
+                events["filtered"] = d.get("eventFilter", None)
+                events["labels"] = andify(d.get("eventFilter", {}).get("label", []))
+            if len(events["activeissuerepos"]) > 0 or len(events["activeprrepos"]) > 0:
+                template, error = loadTemplate("digest", config["TEMPLATES_DIR"], '/mls/' + ml + '/', period)
+                if not template:
+                    raise InvalidConfiguration("No template for %s digest targeted at %s" % (period, ml))
+                from_addr = config.get("email", {}).get("from", config["EMAIL_FROM"])
+                body, subject = mailFromTemplate(template, events)
+                to = ml.split(",")
+                sendMail(config["SMTP_HOST"], body, from_addr, "W3C Webmaster via GitHub API", to, subject)
 
 def serveRequest(config, postbody):
     request_method = os.environ.get('REQUEST_METHOD', "GET")
