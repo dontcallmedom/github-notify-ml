@@ -7,7 +7,6 @@ Subject: Weekly digest of github activity (webrtc-pc)
 
 
 
-
 Issues
 ------
 * w3c/webrtc-pc (+5/-2/💬12)
