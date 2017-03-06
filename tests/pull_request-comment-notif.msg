@@ -1,6 +1,6 @@
-Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"; format="flowed"
 From: Stefan Hakansson via GitHub <test@localhost>
 To: dom@localhost
 Subject: Re: [mediacapture-main] Update text for how constraint dictionaries get
@@ -13,6 +13,5 @@ I made a couple of minor comments, but overall this LGTM.
 
 -- 
 GitHub Notif of comment by stefhak
-See 
-https://github.com/w3c/mediacapture-main/pull/150#issuecomment-83934826
+See https://github.com/w3c/mediacapture-main/pull/150#issuecomment-83934826
 Special template!

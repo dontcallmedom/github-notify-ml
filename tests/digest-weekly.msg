@@ -1,6 +1,6 @@
-Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"; format="flowed"
 From: =?utf-8?q?W3C_Webmaster_via_GitHub_API?= <test@localhost>
 To: dom@localhost
 Subject: Weekly github digest (webrtc-pc)
@@ -24,21 +24,16 @@ Issues
 
 
   2 issues closed:
-  - Rules for negotiation-needed flag need to be updated for 
-transceivers. https://github.com/w3c/webrtc-pc/issues/803
-  - Section 6.2:  Issue 3 - buffered data at transport close 
-https://github.com/w3c/webrtc-pc/issues/888
+  - Rules for negotiation-needed flag need to be updated for transceivers. https://github.com/w3c/webrtc-pc/issues/803
+  - Section 6.2:  Issue 3 - buffered data at transport close https://github.com/w3c/webrtc-pc/issues/888
 
 
   5 issues received 12 new comments:
-  - #888 Section 6.2:  Issue 3 - buffered data at transport close (5 
-by jesup, feross, taylor-b, alvestrand)
+  - #888 Section 6.2:  Issue 3 - buffered data at transport close (5 by jesup, feross, taylor-b, alvestrand)
     https://github.com/w3c/webrtc-pc/issues/888
-  - #714 STUN/TURN OAuth token auth parameter passing (3 by juberti, 
-misi)
+  - #714 STUN/TURN OAuth token auth parameter passing (3 by juberti, misi)
     https://github.com/w3c/webrtc-pc/issues/714
-  - #803 Rules for negotiation-needed flag need to be updated for 
-transceivers. (2 by taylor-b, aboba)
+  - #803 Rules for negotiation-needed flag need to be updated for transceivers. (2 by taylor-b, aboba)
     https://github.com/w3c/webrtc-pc/issues/803
   - #942 Meta: auto-publish changes to the spec (1 by henbos)
     https://github.com/w3c/webrtc-pc/issues/942
@@ -56,8 +51,7 @@ Pull requests
   8 pull requests submitted:
   - Revert "Respec now uses yarn instead of npm" (by vivienlacourba)
     https://github.com/w3c/webrtc-pc/pull/948
-  - Splitting transceiver direction into "direction" and 
-"currentDirection". (by taylor-b)
+  - Splitting transceiver direction into "direction" and "currentDirection". (by taylor-b)
     https://github.com/w3c/webrtc-pc/pull/946
   - Effect of setting sender.track to null (by aboba)
     https://github.com/w3c/webrtc-pc/pull/944
@@ -79,24 +73,19 @@ Pull requests
 
 
   7 pull requests received 10 new comments:
-  - #944 Effect of setting sender.track to null (4 by pthatcherg, 
-aboba)
+  - #944 Effect of setting sender.track to null (4 by pthatcherg, aboba)
     https://github.com/w3c/webrtc-pc/pull/944
-  - #929 Have RTCSessionDescription's sdp member default to "" (1 by 
-jan-ivar)
+  - #929 Have RTCSessionDescription's sdp member default to "" (1 by jan-ivar)
     https://github.com/w3c/webrtc-pc/pull/929
   - #939 Removed "stopped" from removeTrack (1 by aboba)
     https://github.com/w3c/webrtc-pc/pull/939
   - #940 Use of "stopped" in insertDTMF and replaceTrack (1 by aboba)
     https://github.com/w3c/webrtc-pc/pull/940
-  - #920 Revise text dealing with with the ICE Agent/User Agent 
-interactions. (1 by aboba)
+  - #920 Revise text dealing with with the ICE Agent/User Agent interactions. (1 by aboba)
     https://github.com/w3c/webrtc-pc/pull/920
-  - #946 Splitting transceiver direction into "direction" and 
-"currentDirection". (1 by aboba)
+  - #946 Splitting transceiver direction into "direction" and "currentDirection". (1 by aboba)
     https://github.com/w3c/webrtc-pc/pull/946
-  - #919 Removing incorrect statement related to IP leaking issue. (1 
-by vivienlacourba)
+  - #919 Removing incorrect statement related to IP leaking issue. (1 by vivienlacourba)
     https://github.com/w3c/webrtc-pc/pull/919
 
 
