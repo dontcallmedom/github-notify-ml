@@ -411,12 +411,8 @@ def loadTemplate(name, rootpath, specificpath, optionalpath = ""):
 
 def mailFromTemplate(template, payload):
     import pystache
-    import textwrap
     body = pystache.render(template, payload)
     subject, dummy, body = body.partition('\n')
-    paragraphs = body.splitlines()
-    wrapper = textwrap.TextWrapper( break_long_words=False, break_on_hyphens=False,  drop_whitespace=False)
-    body = "\n".join(map(wrapper.fill, paragraphs))
     return body, subject
 
 def sendMail(smtp, body, from_addr, from_name, to_addr, subject, msgid=None, inreplyto=None):
@@ -425,6 +421,7 @@ def sendMail(smtp, body, from_addr, from_name, to_addr, subject, msgid=None, inr
     readable_from = email.header.Header(charset='utf8', header_name='From')
     readable_from.append(from_name)
     readable_from.append('<%s>' % (from_addr), charset='us-ascii')
+    msg.set_param('format', 'flowed')
     msg['From'] = readable_from
     msg['To'] = ",".join(to_addr)
     msg['Subject'] = Header(subject, 'utf-8')
