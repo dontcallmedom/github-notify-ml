@@ -166,16 +166,19 @@ def extractDigestInfo(events, eventFilter=None):
 
 def sendDigest(config, period="daily"):
     from datetime import datetime, timedelta
-    if period == "weekly":
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    if period in days:
         until = datetime.now() - timedelta(7)
+        duration = "weekly"
     else:
         until = datetime.now() - timedelta(1)
+        duration = period
     mls = json.loads(io.open(config['mls'], 'r').read())
     token = config.get("GH_OAUTH_TOKEN", False)
     digests = {}
     for (ml, target) in mls.iteritems():
-        if target.has_key("digest:%s" % period):
-            digests[ml] = target["digest:%s" % period]
+        if target.has_key("digest:%s" % period.lower()):
+            digests[ml] = target["digest:%s" % period.lower()]
             if not isinstance(digests[ml], list):
                 digests[ml] = [digests[ml]]
     for (ml, digest) in digests.iteritems():
@@ -185,7 +188,7 @@ def sendDigest(config, period="daily"):
             events["repos"] = [{"name": r, "shortname": r.split("/")[1], "url": "https://github.com/" + r, "last": i==len(repos)-1} for i,r in enumerate(repos)]
             events["activeissuerepos"] = []
             events["activeprrepos"] = []
-            events["period"] = period.capitalize()
+            events["period"] = duration.capitalize()
             for repo in repos:
                 data = extractDigestInfo(listGithubEvents(repo, token, until), d.get("eventFilter", None))
                 data["name"] = repo
@@ -199,9 +202,9 @@ def sendDigest(config, period="daily"):
             events["activeissues"] = len(events["activeissuerepos"])
             events["activeprs"] = len(events["activeprrepos"])
             if events["activeissues"] > 0 or events["activeprs"] > 0:
-                template, error = loadTemplate("digest", config["TEMPLATES_DIR"], '/mls/' + ml + '/', period)
+                template, error = loadTemplate("digest", config["TEMPLATES_DIR"], '/mls/' + ml + '/', duration)
                 if not template:
-                    raise InvalidConfiguration("No template for %s digest targeted at %s" % (period, ml))
+                    raise InvalidConfiguration("No template for %s digest targeted at %s" % (duration, ml))
                 from_addr = config.get("email", {}).get("from", config["EMAIL_FROM"])
                 body, subject = mailFromTemplate(template, events)
                 to = ml.split(",")
