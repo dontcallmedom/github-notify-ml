@@ -38,7 +38,7 @@ class SendEmailGithubTests(unittest.TestCase):
     def test_weekly_digest(self, mock_smtp):
         instance = mock_smtp.return_value
         refs = [{"dom@localhost":"tests/digest-weekly.msg"}, {"dom@localhost":"tests/digest-weekly-filtered.msg"}]
-        sendDigest(config, "weekly")
+        sendDigest(config, "Wednesday")
         self.assertEqual(instance.sendmail.call_count, len(refs))
         counter = 0
         for (name, args, kwargs) in instance.sendmail.mock_calls:

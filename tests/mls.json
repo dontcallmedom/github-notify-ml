@@ -22,7 +22,7 @@
         "w3c/webrtc-pc": {
             "events": ["pull_request.closed"]
         },
-        "digest:weekly": [
+        "digest:wednesday": [
             {
                 "repos": ["w3c/webrtc-pc"]
             },
@@ -30,6 +30,11 @@
                 "repos": ["w3c/webrtc-pc"],
                 "eventFilter": {"label": ["PR exists"]},
                 "topic": "Issues with proposed edits"
+            }
+        ],
+        "digest:tuesday": [
+            {
+                "repos": ["w3c/mediacapture-main"]
             }
         ]
     },
