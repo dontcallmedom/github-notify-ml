@@ -20,7 +20,7 @@ The set of mailing lists, repos / TR documents and events is configured in a JSO
     }
   },
  "email3@example.com": {
-   "digest:weekly": [
+   "digest:tuesday": [
      {
        "repos": ["githubaccount/repo", "githubaccount/repo2"]
      },
@@ -41,7 +41,7 @@ In other words:
   * `eventFilter` is an optional set of filters that are applied to the events above; at the moment, only a `label` filter is defined, which means that only events that are associated with one of the said labels (defined as an array) will be notified
   * `branches` allows to describe events that are applicable at the branch level rather than the whole repo (e.g. "push")
 * TR draft objects only take an `events` field, with `"tr.published"` currently the only supported event.
-* digest object can be either of "digest:weekly" or "digest:daily"; they take a list of dictionaries with a  "repos" field with an array of repository full names (e.g. `w3c/webrtc-pc`), and optionally an "eventFilter" field (which, as above, only has a `label` filter at the moment)
+* digest object can be either of "digest:monday" (or any other day of the week), or "digest:daily"; they take a list of dictionaries with a  "repos" field with an array of repository full names (e.g. `w3c/webrtc-pc`), and optionally an "eventFilter" field (which, as above, only has a `label` filter at the moment)
 
 Only events for which templates have been defined (in the `templates/generic` directory) will be notified. Each mail target can have customized templates by creating an `email@example.com` directory in `templates/mls` and having a file named after the event. Templates use Mustache-based pystache as their engines and are fed with payload data from the event. The first line of the template is used as the subject of the email.
 
