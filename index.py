@@ -12,6 +12,7 @@ import requests
 import ipaddress
 import smtplib
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email.generator import Generator
 import email.charset
@@ -202,13 +203,13 @@ def sendDigest(config, period="daily"):
             events["activeissues"] = len(events["activeissuerepos"])
             events["activeprs"] = len(events["activeprrepos"])
             if events["activeissues"] > 0 or events["activeprs"] > 0:
-                template, error = loadTemplate("digest", config["TEMPLATES_DIR"], '/mls/' + ml + '/', duration)
-                if not template:
+                templates, error = loadTemplates("digest", config["TEMPLATES_DIR"], '/mls/' + ml + '/', duration)
+                if not len(templates):
                     raise InvalidConfiguration("No template for %s digest targeted at %s" % (duration, ml))
                 from_addr = config.get("email", {}).get("from", config["EMAIL_FROM"])
-                body, subject = mailFromTemplate(template, events)
+                parts, subject = mailFromTemplate(templates, events)
                 to = ml.split(",")
-                sendMail(config["SMTP_HOST"], body, from_addr, "W3C Webmaster via GitHub API", to, subject)
+                sendMail(config["SMTP_HOST"], parts, from_addr, "W3C Webmaster via GitHub API", to, subject)
 
 def serveRequest(config, postbody):
     request_method = os.environ.get('REQUEST_METHOD', "GET")
@@ -249,13 +250,13 @@ def w3cRequest(config, postbody):
     errors = []
     for conf in trs.get(target, []):
         to = conf["email"].get("to").split(",")
-        template, error = loadTemplate(event, config["TEMPLATES_DIR"], '/mls/' + ml + '/')
-        if not template:
+        templates, error = loadTemplates(event, config["TEMPLATES_DIR"], '/mls/' + ml + '/')
+        if not len(templates):
             errors.append(error)
             continue
         from_addr = conf.get("email", {}).get("from", config["EMAIL_FROM"])
-        body, subject = mailFromTemplate(template, payload["specversion"])
-        sentMail.append(sendMail(config["SMTP_HOST"], body, from_addr, "W3C Webmaster via W3C API", to, subject))
+        parts, subject = mailFromTemplate(templates, payload["specversion"])
+        sentMail.append(sendMail(config["SMTP_HOST"], parts, from_addr, "W3C Webmaster via W3C API", to, subject))
     return reportSentMail(sentMail, errors)
 
 def filter_event_payload(eventFilter, payload):
@@ -346,11 +347,11 @@ def githubRequest(config, postbody):
                 if not relevant_payload:
                     continue
 
-            template, error = loadTemplate(event, config["TEMPLATES_DIR"], '/mls/' + ml + '/', formatedRepoName)
-            if not template:
+            templates, error = loadTemplates(event, config["TEMPLATES_DIR"], '/mls/' + ml + '/', formatedRepoName)
+            if not len(templates):
                 errors.append(error)
                 continue
-            body, subject = mailFromTemplate(template, payload)
+            parts, subject = mailFromTemplate(templates, payload)
             frum = repo.get("email", {}).get("from", config["EMAIL_FROM"])
             msgid = "<%s-%s-%s-%s>" % (event, event_id(event, payload),
                                        event_timestamp(event, payload), frum)
@@ -374,7 +375,7 @@ def githubRequest(config, postbody):
                 if frum_name == None:
                     frum_name = payload['sender']['login']
                 frum_name = '%s via GitHub' % (frum_name)
-            sentMail.append(sendMail(config["SMTP_HOST"], body, frum, frum_name, too, subject, msgid, inreplyto))
+            sentMail.append(sendMail(config["SMTP_HOST"], parts, frum, frum_name, too, subject, msgid, inreplyto))
     return reportSentMail(sentMail, errors)
 
 def reportSentMail(sentMail, errors):
@@ -393,35 +394,56 @@ def reportSentMail(sentMail, errors):
         return output
 
 
-def loadTemplate(name, rootpath, specificpath, optionalpath = ""):
-    error = None
-    template = None
-    try:
-        template = io.open(rootpath + specificpath + optionalpath + "/%s" % name).read()
-    except IOError:
+def loadTemplates(name, rootpath, specificpath, optionalpath = ""):
+    templates = []
+    def loadFile(extension = ""):
+        error = None
+        template = None
         try:
-            template = io.open(rootpath + specificpath + "/%s" % name).read()
+            template = io.open(rootpath + specificpath + optionalpath + "/%s%s" % (name, extension)).read()
         except IOError:
             try:
-                template = io.open(rootpath + "/generic/%s" % name).read()
+                template = io.open(rootpath + specificpath + "/%s%s" % (name,extension)).read()
             except IOError:
-                error = {'msg': 'no template defined for event %s' % name}
-    return template, error
+                try:
+                    template = io.open(rootpath + "/generic/%s%s" % (name,extension)).read()
+                except IOError:
+                    error = {'msg': 'no template defined for event %s' % name}
+        return template, error
+    template, error = loadFile()
+    if template:
+        templates.append(template)
+        htmltemplate, error = loadFile('.html')
+        if htmltemplate:
+            templates.append(htmltemplate)
+    return templates, error
 
-
-def mailFromTemplate(template, payload):
+def mailFromTemplate(templates, payload):
     import pystache
-    body = pystache.render(template, payload)
-    subject, dummy, body = body.partition('\n')
-    return body, subject
+    parts = []
+    formats = ['plain', 'html']
+    for template, subtype in zip(templates, formats):
+        body = pystache.render(template, payload)
+        if subtype == 'plain':
+            subject, dummy, body = body.partition('\n')
+        parts.append({'body': body, 'subtype': subtype})
+    return parts, subject
 
-def sendMail(smtp, body, from_addr, from_name, to_addr, subject, msgid=None, inreplyto=None):
+def sendMail(smtp, parts, from_addr, from_name, to_addr, subject, msgid=None, inreplyto=None):
     s = smtplib.SMTP(smtp)
-    msg = MIMEText(body, _charset="utf-8")
+    if len(parts) == 1:
+        msg = MIMEText(parts[0]['body'], _charset="utf-8")
+        msg.set_param('format', 'flowed')
+    else:
+        msg = MIMEMultipart('alternative')
+        for part in parts:
+            alt = MIMEText(part['body'], part['subtype'], _charset="utf-8")
+            if part['subtype'] == 'plain':
+                alt.set_param('format', 'flowed')
+            msg.attach(alt)
     readable_from = email.header.Header(charset='utf8', header_name='From')
     readable_from.append(from_name)
     readable_from.append('<%s>' % (from_addr), charset='us-ascii')
-    msg.set_param('format', 'flowed')
     msg['From'] = readable_from
     msg['To'] = ",".join(to_addr)
     msg['Subject'] = Header(subject, 'utf-8')
