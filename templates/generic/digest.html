@@ -1,5 +1,4 @@
-{{period}} github digest ({{#topic}}{{.}}{{/topic}}{{^topic}}{{#repos}}{{shortname}}{{^last}}, {{/last}}{{/repos}}{{/topic}})
-
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -15,8 +14,8 @@ li { margin-bottom: .2em; }
 </head>
 
 <body>
-<h1>Date here</h1>
-<p>{{#filtered}}Events filtered by label {{#labels}}"{{name}}"{{^last}}, {{/last}}{{/labels}}</p>
+<h1>{{date}}</h1>
+{{#filtered}}<p>Events filtered by label {{#labels}}"{{name}}"{{^last}}, {{/last}}{{/labels}}</p>
 {{/filtered}}
 
 {{#activeissues}}<h2>Issues</h2>
@@ -24,27 +23,21 @@ li { margin-bottom: .2em; }
 {{#activeissuerepos}}
 <h3>{{name}} (+{{newissues.count}}/-{{closedissues.count}}/💬{{issuecommentscount}})</h3>
 {{#newissues.count}}  <p class="new">{{.}} issues created:</p>
-{{#newissues.list}}
-  <ul>
+  <ul>{{#newissues.list}}
   <li><a href="{{{payload.issue.html_url}}}">{{{payload.issue.title}}}</a> (by {{actor.display_login}})</li>
-  </ul>
-{{/newissues.list}}
+  {{/newissues.list}}</ul>
 {{/newissues.count}}
 
 {{#closedissues.count}}  <p>{{.}} issues closed:</p>
-{{#closedissues.list}}
-  <ul>
+  <ul>{{#closedissues.list}}
   <li><a href="{{{payload.issue.html_url}}}">{{{payload.issue.title}}}</a></li>
-  </ul>
-{{/closedissues.list}}
+  {{/closedissues.list}}</ul>
 {{/closedissues.count}}
 
 {{#commentedissues.count}}  <p>{{.}} issues received {{issuecommentscount}} new comments:</p>
-{{#commentedissues.list}}
-  <ul>
+  <ul>{{#commentedissues.list}}
   <li>#{{number}} <a href="{{{url}}}">{{{title}}}</a> ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}})</li>
-  </ul>
-{{/commentedissues.list}}
+  {{/commentedissues.list}}</ul>
 {{/commentedissues.count}}
 
 {{/activeissuerepos}}{{/activeissues}}
@@ -53,27 +46,21 @@ li { margin-bottom: .2em; }
 {{#activeprrepos}}
 <h3>{{name}} (+{{newpr.count}}/-{{mergedpr.count}}/💬{{prcommentscount}})</h3>
 {{#newpr.count}}  <p class="new">{{.}} pull requests submitted:</p>
-{{#newpr.list}}
-  <ul>
+  <ul>{{#newpr.list}}
   <li><a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a> (by {{actor.display_login}})</li>
-  </ul>
-{{/newpr.list}}
+  {{/newpr.list}}</ul>
 {{/newpr.count}}
 
 {{#mergedpr.count}}  <p>{{.}} pull requests merged:</p>
-{{#mergedpr.list}}
-  <ul>
+  <ul>{{#mergedpr.list}}
   <li><a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a></li>
-  </ul>
-{{/mergedpr.list}}
+  {{/mergedpr.list}}</ul>
 
 {{/mergedpr.count}}
 {{#commentedpr.count}}  <p>{{.}} pull requests received {{prcommentscount}} new comments:</p>
-{{#commentedpr.list}}
-  <ul>
+  <ul>{{#commentedpr.list}}
   <li>#{{number}} <a href="{{{url}}}">{{{title}}}</a> ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}})</li>
-  </ul>
-{{/commentedpr.list}}
+  {{/commentedpr.list}}</ul>
 {{/commentedpr.count}}
 
 {{/activeprrepos}}
