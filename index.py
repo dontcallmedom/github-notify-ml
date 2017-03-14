@@ -186,6 +186,7 @@ def sendDigest(config, period="daily"):
         for d in digest:
             repos = d["repos"]
             events = {}
+            events["date"] = datetime.now().strftime("%A %B %d, %Y")
             events["repos"] = [{"name": r, "shortname": r.split("/")[1], "url": "https://github.com/" + r, "last": i==len(repos)-1} for i,r in enumerate(repos)]
             events["activeissuerepos"] = []
             events["activeprrepos"] = []
