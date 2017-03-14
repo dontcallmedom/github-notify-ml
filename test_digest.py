@@ -33,28 +33,42 @@ class SendEmailGithubTests(unittest.TestCase):
         responses.add(responses.GET, 'https://api.github.com/repos/w3c/webrtc-pc/issues/events',
                       body=io.open('tests/repo1-issues.json').read(), content_type='application/json')
 
+    def parseReferenceMessage():
+        return headers, body
+
     @responses.activate
     @patch("smtplib.SMTP")
     def test_weekly_digest(self, mock_smtp):
+        import email
         instance = mock_smtp.return_value
         refs = [{"dom@localhost":"tests/digest-weekly.msg"}, {"dom@localhost":"tests/digest-weekly-filtered.msg"}]
         sendDigest(config, "Wednesday")
         self.assertEqual(instance.sendmail.call_count, len(refs))
         counter = 0
+        import pprint
         for (name, args, kwargs) in instance.sendmail.mock_calls:
             self.assertEqual(args[0], u"test@localhost")
             self.assertIn(args[1][0], refs[counter])
-            msg = io.open(refs[counter][args[1][0]]).read()
-
-            self.maxDiff = None
-            import email
             sent_email = email.message_from_string(args[2])
-            sent_headers = args[2].split("\n\n")[0]
-            sent_body = sent_email.get_payload(decode=True).decode('utf-8')
-            ref_headers = msg.split("\n\n")[0]
-            ref_body = "\n".join(msg.split("\n\n")[1:])
-            self.assertMultiLineEqual(sent_headers, ref_headers)
-            self.assertMultiLineEqual(sent_body, ref_body)
+            sent_parts = []
+            ref_parts = []
+            ref_parts.append(io.open(refs[counter][args[1][0]]).read())
+            if sent_email.is_multipart():
+                sent_parts.append({'headers': sent_email.get_payload(0).as_string().split('\n\n')[0],
+                                   'body': sent_email.get_payload(0).get_payload(decode=True).decode('utf-8')})
+                sent_parts.append({'headers': sent_email.get_payload(1).as_string().split('\n\n')[0],
+                                 'body': sent_email.get_payload(1).get_payload(decode=True).decode('utf-8')})
+                ref_parts.append(io.open(refs[counter][args[1][0]] + '.html').read())
+            else:
+                sent_parts.append({'headers': args[2].split("\n\n")[0],
+                                 'body': sent_email.get_payload(decode=True).decode('utf-8')})
+            self.maxDiff = None
+            for sent_part, ref_part in zip(sent_parts, ref_parts):
+                # TODO: use partition
+                ref_headers = ref_part.split("\n\n")[0]
+                self.assertMultiLineEqual(sent_part['headers'], ref_headers)
+                ref_body = "\n".join(ref_part.split("\n\n")[1:])
+                self.assertMultiLineEqual(sent_part['body'], ref_body)
             counter = counter + 1
 
 if __name__ == '__main__':

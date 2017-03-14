@@ -1,9 +1,6 @@
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain; charset="utf-8"; format="flowed"
-From: =?utf-8?q?W3C_Webmaster_via_GitHub_API?= <test@localhost>
-To: dom@localhost
-Subject: Weekly github digest (Issues with proposed edits)
 
 
 Events filtered by label "PR exists"
