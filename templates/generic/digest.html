@@ -49,7 +49,7 @@ li { margin-bottom: .2em; }
 <h3>{{name}} (+{{newpr.count}}/-{{mergedpr.count}}/💬{{prcommentscount}})</h3>
 {{#newpr.count}}  <p class="new">{{.}} pull requests submitted:</p>
   <ul>{{#newpr.list}}
-  <li>#{{payload.issue.number}} <a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a> (by {{actor.display_login}})</li>
+  <li>#{{payload.pull_request.number}} <a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a> (by {{actor.display_login}})</li>
   {{/newpr.list}}</ul>
 {{/newpr.count}}
 
@@ -61,7 +61,7 @@ li { margin-bottom: .2em; }
 
 {{#mergedpr.count}}  <p>{{.}} pull requests merged:</p>
   <ul>{{#mergedpr.list}}
-  <li>#{{payload.issue.number}} <a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a></li>
+  <li>#{{payload.pull_request.number}} <a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a></li>
   {{/mergedpr.list}}</ul>
 {{/mergedpr.count}}
 
