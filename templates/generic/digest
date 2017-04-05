@@ -12,21 +12,21 @@
   - {{{payload.issue.title}}} (by {{actor.display_login}})
     {{{payload.issue.html_url}}}
 {{/newissues.list}}
-
 {{/newissues.count}}
-{{#closedissues.count}}  {{.}} issues closed:
-{{#closedissues.list}}
-  - {{{payload.issue.title}}} {{{payload.issue.html_url}}}
-{{/closedissues.list}}
 
-{{/closedissues.count}}
 {{#commentedissues.count}}  {{.}} issues received {{issuecommentscount}} new comments:
 {{#commentedissues.list}}
   - #{{number}} {{{title}}} ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}})
     {{{url}}}
 {{/commentedissues.list}}
-
 {{/commentedissues.count}}
+
+{{#closedissues.count}}  {{.}} issues closed:
+{{#closedissues.list}}
+  - {{{payload.issue.title}}} {{{payload.issue.html_url}}}
+{{/closedissues.list}}
+{{/closedissues.count}}
+
 {{/activeissuerepos}}{{/activeissues}}
 
 {{#activeprs}}Pull requests
@@ -38,22 +38,22 @@
   - {{{payload.pull_request.title}}} (by {{actor.display_login}})
     {{{payload.pull_request.html_url}}}
 {{/newpr.list}}
-
 {{/newpr.count}}
-{{#mergedpr.count}}  {{.}} pull requests merged:
-{{#mergedpr.list}}
-  - {{{payload.pull_request.title}}}
-    {{{payload.pull_request.html_url}}}
-{{/mergedpr.list}}
 
-{{/mergedpr.count}}
 {{#commentedpr.count}}  {{.}} pull requests received {{prcommentscount}} new comments:
 {{#commentedpr.list}}
   - #{{number}} {{{title}}} ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}})
     {{{url}}}
 {{/commentedpr.list}}
-
 {{/commentedpr.count}}
+
+{{#mergedpr.count}}  {{.}} pull requests merged:
+{{#mergedpr.list}}
+  - {{{payload.pull_request.title}}}
+    {{{payload.pull_request.html_url}}}
+{{/mergedpr.list}}
+{{/mergedpr.count}}
+
 {{/activeprrepos}}
 {{/activeprs}}
 
