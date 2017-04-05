@@ -53,7 +53,6 @@ li { margin-bottom: .2em; }
   {{/newpr.list}}</ul>
 {{/newpr.count}}
 
-{{/mergedpr.count}}
 {{#commentedpr.count}}  <p>{{.}} pull requests received {{prcommentscount}} new comments:</p>
   <ul>{{#commentedpr.list}}
   <li>#{{number}} <a href="{{{url}}}">{{{title}}}</a> ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}})</li>
@@ -64,6 +63,7 @@ li { margin-bottom: .2em; }
   <ul>{{#mergedpr.list}}
   <li>#{{number}} <a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a></li>
   {{/mergedpr.list}}</ul>
+{{/mergedpr.count}}
 
 {{/activeprrepos}}
 {{/activeprs}}
