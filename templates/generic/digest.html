@@ -26,7 +26,7 @@ li { margin-bottom: .2em; }
 <h3>{{name}} (+{{newissues.count}}/-{{closedissues.count}}/💬{{issuecommentscount}})</h3>
 {{#newissues.count}}  <p class="new">{{.}} issues created:</p>
   <ul>{{#newissues.list}}
-  <li>#{{number}} <a href="{{{payload.issue.html_url}}}">{{{payload.issue.title}}}</a> (by {{actor.display_login}})</li>
+  <li>#{{payload.issue.number}} <a href="{{{payload.issue.html_url}}}">{{{payload.issue.title}}}</a> (by {{actor.display_login}})</li>
   {{/newissues.list}}</ul>
 {{/newissues.count}}
 
@@ -38,7 +38,7 @@ li { margin-bottom: .2em; }
 
 {{#closedissues.count}}  <p>{{.}} issues closed:</p>
   <ul>{{#closedissues.list}}
-  <li>#{{number}} <a href="{{{payload.issue.html_url}}}">{{{payload.issue.title}}}</a></li>
+  <li>#{{payload.issue.number}} <a href="{{{payload.issue.html_url}}}">{{{payload.issue.title}}}</a></li>
   {{/closedissues.list}}</ul>
 {{/closedissues.count}}
 
@@ -49,7 +49,7 @@ li { margin-bottom: .2em; }
 <h3>{{name}} (+{{newpr.count}}/-{{mergedpr.count}}/💬{{prcommentscount}})</h3>
 {{#newpr.count}}  <p class="new">{{.}} pull requests submitted:</p>
   <ul>{{#newpr.list}}
-  <li>#{{number}} <a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a> (by {{actor.display_login}})</li>
+  <li>#{{payload.issue.number}} <a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a> (by {{actor.display_login}})</li>
   {{/newpr.list}}</ul>
 {{/newpr.count}}
 
@@ -61,7 +61,7 @@ li { margin-bottom: .2em; }
 
 {{#mergedpr.count}}  <p>{{.}} pull requests merged:</p>
   <ul>{{#mergedpr.list}}
-  <li>#{{number}} <a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a></li>
+  <li>#{{payload.issue.number}} <a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a></li>
   {{/mergedpr.list}}</ul>
 {{/mergedpr.count}}
 
