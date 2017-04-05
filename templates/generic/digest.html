@@ -5,10 +5,12 @@
 <title>{{period}} github digest ({{#topic}}{{.}}{{/topic}}{{^topic}}{{#repos}}{{shortname}}{{^last}}, {{/last}}{{/repos}}{{/topic}}</title>
 <style>
 body { font-family: Gotham, "Helvetica Neue", Helvetica, Arial, sans-serif; }
-h2 { margin-top: 3em; color: #A52A2A; font-style: italic; }
-h3 { margin-bottom:0; margin-top: 2em; font-size: 1.4em; }
+h2 { margin-top: 3em; color: #A52A2A; font-style: italic; font-weight: normal; }
+h3 { margin-bottom:0; margin-top: 2em; font-size: 1.2em; }
+h2+h3 { margin-top: 1em; }
 a { color: #bb6219; text-decoration: none; }
 li { margin-bottom: .2em; }
+#repos li { margin-bottom: 0; line-height: 1; }
 .new { color: red; }
 </style>
 </head>
@@ -24,21 +26,21 @@ li { margin-bottom: .2em; }
 <h3>{{name}} (+{{newissues.count}}/-{{closedissues.count}}/💬{{issuecommentscount}})</h3>
 {{#newissues.count}}  <p class="new">{{.}} issues created:</p>
   <ul>{{#newissues.list}}
-  <li><a href="{{{payload.issue.html_url}}}">{{{payload.issue.title}}}</a> (by {{actor.display_login}})</li>
+  <li>#{{number}} <a href="{{{payload.issue.html_url}}}">{{{payload.issue.title}}}</a> (by {{actor.display_login}})</li>
   {{/newissues.list}}</ul>
 {{/newissues.count}}
-
-{{#closedissues.count}}  <p>{{.}} issues closed:</p>
-  <ul>{{#closedissues.list}}
-  <li><a href="{{{payload.issue.html_url}}}">{{{payload.issue.title}}}</a></li>
-  {{/closedissues.list}}</ul>
-{{/closedissues.count}}
 
 {{#commentedissues.count}}  <p>{{.}} issues received {{issuecommentscount}} new comments:</p>
   <ul>{{#commentedissues.list}}
   <li>#{{number}} <a href="{{{url}}}">{{{title}}}</a> ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}})</li>
   {{/commentedissues.list}}</ul>
 {{/commentedissues.count}}
+
+{{#closedissues.count}}  <p>{{.}} issues closed:</p>
+  <ul>{{#closedissues.list}}
+  <li>#{{number}} <a href="{{{payload.issue.html_url}}}">{{{payload.issue.title}}}</a></li>
+  {{/closedissues.list}}</ul>
+{{/closedissues.count}}
 
 {{/activeissuerepos}}{{/activeissues}}
 
@@ -47,14 +49,9 @@ li { margin-bottom: .2em; }
 <h3>{{name}} (+{{newpr.count}}/-{{mergedpr.count}}/💬{{prcommentscount}})</h3>
 {{#newpr.count}}  <p class="new">{{.}} pull requests submitted:</p>
   <ul>{{#newpr.list}}
-  <li><a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a> (by {{actor.display_login}})</li>
+  <li>#{{number}} <a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a> (by {{actor.display_login}})</li>
   {{/newpr.list}}</ul>
 {{/newpr.count}}
-
-{{#mergedpr.count}}  <p>{{.}} pull requests merged:</p>
-  <ul>{{#mergedpr.list}}
-  <li><a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a></li>
-  {{/mergedpr.list}}</ul>
 
 {{/mergedpr.count}}
 {{#commentedpr.count}}  <p>{{.}} pull requests received {{prcommentscount}} new comments:</p>
@@ -63,12 +60,17 @@ li { margin-bottom: .2em; }
   {{/commentedpr.list}}</ul>
 {{/commentedpr.count}}
 
+{{#mergedpr.count}}  <p>{{.}} pull requests merged:</p>
+  <ul>{{#mergedpr.list}}
+  <li>#{{number}} <a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a></li>
+  {{/mergedpr.list}}</ul>
+
 {{/activeprrepos}}
 {{/activeprs}}
 
 <h2>Repositories tracked by this digest:</h2>
 {{#repos}}
-<ul>
+<ul id="repos">
   <li><a href="{{{url}}}">{{{url}}}</a></li>
   </ul>
 {{/repos}}
