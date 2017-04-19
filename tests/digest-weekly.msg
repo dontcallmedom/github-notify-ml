@@ -20,11 +20,6 @@ Issues
     https://github.com/w3c/webrtc-pc/issues/941
 
 
-  2 issues closed:
-  - Rules for negotiation-needed flag need to be updated for transceivers. https://github.com/w3c/webrtc-pc/issues/803
-  - Section 6.2:  Issue 3 - buffered data at transport close https://github.com/w3c/webrtc-pc/issues/888
-
-
   5 issues received 12 new comments:
   - #888 Section 6.2:  Issue 3 - buffered data at transport close (5 by jesup, feross, taylor-b, alvestrand)
     https://github.com/w3c/webrtc-pc/issues/888
@@ -36,6 +31,11 @@ Issues
     https://github.com/w3c/webrtc-pc/issues/942
   - #927 What happens when setDirection() is called (1 by taylor-b)
     https://github.com/w3c/webrtc-pc/issues/927
+
+
+  2 issues closed:
+  - Rules for negotiation-needed flag need to be updated for transceivers. https://github.com/w3c/webrtc-pc/issues/803
+  - Section 6.2:  Issue 3 - buffered data at transport close https://github.com/w3c/webrtc-pc/issues/888
 
 
 
@@ -64,11 +64,6 @@ Pull requests
     https://github.com/w3c/webrtc-pc/pull/936
 
 
-  1 pull requests merged:
-  - Respec now uses yarn instead of npm
-    https://github.com/w3c/webrtc-pc/pull/935
-
-
   7 pull requests received 10 new comments:
   - #944 Effect of setting sender.track to null (4 by pthatcherg, aboba)
     https://github.com/w3c/webrtc-pc/pull/944
@@ -84,6 +79,11 @@ Pull requests
     https://github.com/w3c/webrtc-pc/pull/946
   - #919 Removing incorrect statement related to IP leaking issue. (1 by vivienlacourba)
     https://github.com/w3c/webrtc-pc/pull/919
+
+
+  1 pull requests merged:
+  - Respec now uses yarn instead of npm
+    https://github.com/w3c/webrtc-pc/pull/935
 
 
 
