@@ -26,19 +26,19 @@ li { margin-bottom: .2em; }
 <h3>{{name}} (+{{newissues.count}}/-{{closedissues.count}}/💬{{issuecommentscount}})</h3>
 {{#newissues.count}}  <p class="new">{{.}} issues created:</p>
   <ul>{{#newissues.list}}
-  <li>#{{payload.issue.number}} <a href="{{{payload.issue.html_url}}}">{{{payload.issue.title}}}</a> (by {{actor.display_login}})</li>
+  <li>#{{payload.issue.number}} <a href="{{payload.issue.html_url}}">{{payload.issue.title}}</a> (by {{actor.display_login}})</li>
   {{/newissues.list}}</ul>
 {{/newissues.count}}
 
 {{#commentedissues.count}}  <p>{{.}} issues received {{issuecommentscount}} new comments:</p>
   <ul>{{#commentedissues.list}}
-  <li>#{{number}} <a href="{{{url}}}">{{{title}}}</a> ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}})</li>
+  <li>#{{number}} <a href="{{url}}">{{title}}</a> ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}})</li>
   {{/commentedissues.list}}</ul>
 {{/commentedissues.count}}
 
 {{#closedissues.count}}  <p>{{.}} issues closed:</p>
   <ul>{{#closedissues.list}}
-  <li>#{{payload.issue.number}} <a href="{{{payload.issue.html_url}}}">{{{payload.issue.title}}}</a></li>
+  <li>#{{payload.issue.number}} <a href="{{payload.issue.html_url}}">{{payload.issue.title}}</a></li>
   {{/closedissues.list}}</ul>
 {{/closedissues.count}}
 
@@ -49,19 +49,19 @@ li { margin-bottom: .2em; }
 <h3>{{name}} (+{{newpr.count}}/-{{mergedpr.count}}/💬{{prcommentscount}})</h3>
 {{#newpr.count}}  <p class="new">{{.}} pull requests submitted:</p>
   <ul>{{#newpr.list}}
-  <li>#{{payload.pull_request.number}} <a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a> (by {{actor.display_login}})</li>
+  <li>#{{payload.pull_request.number}} <a href="{{payload.pull_request.html_url}}">{{payload.pull_request.title}}</a> (by {{actor.display_login}})</li>
   {{/newpr.list}}</ul>
 {{/newpr.count}}
 
 {{#commentedpr.count}}  <p>{{.}} pull requests received {{prcommentscount}} new comments:</p>
   <ul>{{#commentedpr.list}}
-  <li>#{{number}} <a href="{{{url}}}">{{{title}}}</a> ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}})</li>
+  <li>#{{number}} <a href="{{url}}">{{title}}</a> ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}})</li>
   {{/commentedpr.list}}</ul>
 {{/commentedpr.count}}
 
 {{#mergedpr.count}}  <p>{{.}} pull requests merged:</p>
   <ul>{{#mergedpr.list}}
-  <li>#{{payload.pull_request.number}} <a href="{{{payload.pull_request.html_url}}}">{{{payload.pull_request.title}}}</a></li>
+  <li>#{{payload.pull_request.number}} <a href="{{payload.pull_request.html_url}}">{{payload.pull_request.title}}</a></li>
   {{/mergedpr.list}}</ul>
 {{/mergedpr.count}}
 
@@ -71,7 +71,7 @@ li { margin-bottom: .2em; }
 <h2>Repositories tracked by this digest:</h2>
 {{#repos}}
 <ul class="repos">
-  <li><a href="{{{url}}}">{{{url}}}</a></li>
+  <li><a href="{{url}}">{{url}}</a></li>
   </ul>
 {{/repos}}
 </body>
