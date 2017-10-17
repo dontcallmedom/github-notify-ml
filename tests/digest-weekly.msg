@@ -4,6 +4,10 @@ Content-Type: text/plain; charset="utf-8"; format="flowed"
 
 
 
+Errors while compiling the digest:
+ - Repo foo/bar/events yields 404 error
+
+
 Issues
 ------
 * w3c/webrtc-pc (+5/-2/💬12)
@@ -91,3 +95,4 @@ Pull requests
 Repositories tracked by this digest:
 -----------------------------------
 * https://github.com/w3c/webrtc-pc
+* https://github.com/foo/bar

@@ -26,6 +26,7 @@ class SpoofDatetime(datetime.datetime):
 class SendEmailGithubTests(unittest.TestCase):
     def setUp(self):
         datetime.datetime = SpoofDatetime
+        responses.add(responses.GET, 'https://api.github.com/repos/foo/bar/events', status=404)
         responses.add(responses.GET, 'https://api.github.com/repos/w3c/webrtc-pc/events',
                       body=io.open('tests/repo1-events-1.json').read(), content_type='application/json', adding_headers={'link':'<https://api.github.com/repos/w3c/webrtc-pc/events/2>;rel="next"'})
         responses.add(responses.GET, 'https://api.github.com/repos/w3c/webrtc-pc/events/2',

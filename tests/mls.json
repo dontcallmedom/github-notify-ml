@@ -24,7 +24,7 @@
         },
         "digest:wednesday": [
             {
-                "repos": ["w3c/webrtc-pc"]
+                "repos": ["w3c/webrtc-pc", "foo/bar"]
             },
             {
                 "repos": ["w3c/webrtc-pc"],
