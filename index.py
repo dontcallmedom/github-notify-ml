@@ -94,6 +94,8 @@ def navigateGithubList(url, token, until, cumul = []):
     headers = {}
     headers['Authorization']="token %s" % token
     githubListReq = requests.get(url, headers=headers)
+    if githubListReq.status_code == 404:
+        return [{"error": "Repo %s yields 404 error" % url.split("https://api.github.com/repos/")[1] }]
     pageList = githubListReq.json()
     def posterior(item):
         return until.strftime("%Y-%m-%dT%H:%M:%SZ") <= item["created_at"]
@@ -128,6 +130,7 @@ def extractDigestInfo(events, eventFilter=None):
     isMerged = lambda x: x.get("payload",{}).get("pull_request",{}).get("merged")
 
     filtered_events = events["repo"]
+    errors = filter(lambda x: x.get("error"), events["repo"])
     if (eventFilter):
         filtered_events = filter(lambda x: filter_event_payload(eventFilter, x.get("payload", {})), events["repo"])
 
@@ -153,6 +156,7 @@ def extractDigestInfo(events, eventFilter=None):
         commentedissues[number]["commentors"].add(comment["actor"]["display_login"])
     for number, issue in commentedissues.iteritems():
         commentedissues[number]["commentors"] = andify(commentedissues[number]["commentors"])
+    data["errors"] =listify(errors)
     data["newissues"] = listify(newissues)
     data["closedissues"] = listify(closedissues)
     data["commentedissues"] = listify(sorted(filter(lambda x: not x["ispr"], commentedissues.values()), key=lambda issue: -issue["commentscount"]))
@@ -194,6 +198,8 @@ def sendDigest(config, period="daily"):
             for repo in repos:
                 data = extractDigestInfo(listGithubEvents(repo, token, until), d.get("eventFilter", None))
                 data["name"] = repo
+                if data["errors"]:
+                    events["errors"] = data["errors"]
                 if data["activeissue"]:
                     events["activeissuerepos"].append(data)
                 if data["activepr"]:

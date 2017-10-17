@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>{{period}} github digest ({{#topic}}{{.}}{{/topic}}{{^topic}}{{#repos}}{{shortname}}{{^last}}, {{/last}}{{/repos}}{{/topic}}</title>
+<title>{{period}} github digest ({{#topic}}{{.}}{{/topic}}{{^topic}}{{#repos}}{{shortname}}{{^last}}, {{/last}}{{/repos}}{{/topic}})</title>
 <style>
 body { font-family: Gotham, "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 14px; }
 h2 { margin-top: 3em; color: #A52A2A; font-style: italic; font-weight: normal; }
@@ -17,6 +17,12 @@ li { margin-bottom: .2em; }
 
 <body>
 <h1>{{date}}</h1>
+{{#errors.count}}Errors while compiling the digest:
+<ul>
+{{#errors.list}}<li>{{error}}</li>{{/errors.list}}
+</ul>
+{{/errors.count}}
+
 {{#filtered}}<p>Events filtered by label {{#labels}}"{{name}}"{{^last}}, {{/last}}{{/labels}}</p>
 {{/filtered}}
 
@@ -69,10 +75,10 @@ li { margin-bottom: .2em; }
 {{/activeprs}}
 
 <h2>Repositories tracked by this digest:</h2>
-{{#repos}}
 <ul class="repos">
+{{#repos}}
   <li><a href="{{url}}">{{url}}</a></li>
-  </ul>
 {{/repos}}
+  </ul>
 </body>
 </html>
