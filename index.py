@@ -285,7 +285,10 @@ def githubRequest(config, postbody):
     remote_addr = os.environ.get('HTTP_X_FORWARDED_FOR', os.environ.get('REMOTE_ADDR'))
 
     # Store the IP address blocks that github uses for hook requests.
-    hook_blocks = requests.get('https://api.github.com/meta').json()['hooks']
+    headers = {}
+    if config.has_key("GH_OAUTH_TOKEN"):
+        headers['Authorization']="token %s" % (config["GH_OAUTH_TOKEN"])
+    hook_blocks = requests.get('https://api.github.com/meta', headers=headers).json()['hooks']
     output = ""
 
     # Check if the request is from github.com
@@ -374,7 +377,7 @@ def githubRequest(config, postbody):
             headers = {}
             frum_name = ""
 
-            if config.get("GH_OAUTH_TOKEN", False):
+            if config.has_key("GH_OAUTH_TOKEN"):
                 headers['Authorization']="token %s" % (config["GH_OAUTH_TOKEN"])
                 frum_name = requests.get(payload['sender']['url'],
                                      headers=headers
