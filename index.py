@@ -171,8 +171,8 @@ def extractDigestInfo(events, eventFilter=None):
 
 def sendDigest(config, period="daily"):
     from datetime import datetime, timedelta
-    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    if period in days:
+    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    if period.lower() in days:
         until = datetime.now() - timedelta(7)
         duration = "weekly"
     else:
