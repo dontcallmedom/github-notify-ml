@@ -36,6 +36,11 @@
             {
                 "repos": ["w3c/mediacapture-main"]
             }
+        ],
+        "summary:quarterly": [
+            {
+                "repos": ["w3c/webcrypto"]
+            }
         ]
     },
     "log@localhost": {

@@ -26,13 +26,20 @@ class SpoofDatetime(datetime.datetime):
 class SendEmailGithubTests(unittest.TestCase):
     def setUp(self):
         datetime.datetime = SpoofDatetime
+        responses.add(responses.GET, 'https://api.github.com/repos/foo/bar', status=404)
         responses.add(responses.GET, 'https://api.github.com/repos/foo/bar/events', status=404)
+        responses.add(responses.GET, 'https://api.github.com/repos/w3c/webrtc-pc',
+                      body=io.open('tests/repo1-data.json').read(), content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/repos/w3c/webrtc-pc/events',
                       body=io.open('tests/repo1-events-1.json').read(), content_type='application/json', adding_headers={'link':'<https://api.github.com/repos/w3c/webrtc-pc/events/2>;rel="next"'})
         responses.add(responses.GET, 'https://api.github.com/repos/w3c/webrtc-pc/events/2',
                       body=io.open('tests/repo1-events-2.json').read(), content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/repos/w3c/webrtc-pc/issues/events',
                       body=io.open('tests/repo1-issues.json').read(), content_type='application/json')
+        responses.add(responses.GET, 'https://api.github.com/repos/w3c/webcrypto',
+                      body=io.open('tests/repo2-data.json').read(), content_type='application/json')
+        responses.add(responses.GET, 'https://api.github.com/repos/w3c/webcrypto/events',
+                      body=io.open('tests/repo2-events-1.json').read(), content_type='application/json')
 
     def parseReferenceMessage():
         return headers, body
@@ -40,10 +47,18 @@ class SendEmailGithubTests(unittest.TestCase):
     @responses.activate
     @patch("smtplib.SMTP")
     def test_weekly_digest(self, mock_smtp):
+        self.do_digest("Wednesday", [{"dom@localhost":"tests/digest-weekly.msg"}, {"dom@localhost":"tests/digest-weekly-filtered.msg"}], True, mock_smtp)
+
+    @responses.activate
+    @patch("smtplib.SMTP")
+    def test_quarterly_summary(self, mock_smtp):
+        self.do_digest("quarterly", [{"dom@localhost":"tests/summary-quarterly.msg"}], False, mock_smtp)
+
+
+    def do_digest(self, period, refs, html, mock_smtp):
         import email
         instance = mock_smtp.return_value
-        refs = [{"dom@localhost":"tests/digest-weekly.msg"}, {"dom@localhost":"tests/digest-weekly-filtered.msg"}]
-        sendDigest(config, "Wednesday")
+        sendDigest(config, period)
         self.assertEqual(instance.sendmail.call_count, len(refs))
         counter = 0
         import pprint
@@ -59,7 +74,8 @@ class SendEmailGithubTests(unittest.TestCase):
                                    'body': sent_email.get_payload(0).get_payload(decode=True).decode('utf-8')})
                 sent_parts.append({'headers': sent_email.get_payload(1).as_string().split('\n\n')[0],
                                  'body': sent_email.get_payload(1).get_payload(decode=True).decode('utf-8')})
-                ref_parts.append(io.open(refs[counter][args[1][0]] + '.html').read())
+                if html:
+                    ref_parts.append(io.open(refs[counter][args[1][0]] + '.html').read())
             else:
                 sent_parts.append({'headers': args[2].split("\n\n")[0],
                                  'body': sent_email.get_payload(decode=True).decode('utf-8')})
