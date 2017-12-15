@@ -90,6 +90,15 @@ def refevent(event, payload, target, oauth_token):
                 return ("pull_request.opened", pr_id)
     return (None,None)
 
+def getRepoData(repo, token):
+    url = "https://api.github.com/repos/%s" % repo
+    headers = {}
+    headers['Authorization']="token %s" % token
+    githubListReq = requests.get(url, headers=headers)
+    if githubListReq.status_code == 404:
+        return [{"error": "Repo %s yields 404 error" % repo}]
+    return githubListReq.json()
+
 def navigateGithubList(url, token, until, cumul = []):
     headers = {}
     headers['Authorization']="token %s" % token
@@ -175,6 +184,9 @@ def sendDigest(config, period="daily"):
     if period.lower() in days:
         until = datetime.now() - timedelta(7)
         duration = "weekly"
+    elif period.lower() == "quarterly":
+        until = datetime.now() - timedelta(92)
+        duration = "quarterly"
     else:
         until = datetime.now() - timedelta(1)
         duration = period
@@ -182,10 +194,16 @@ def sendDigest(config, period="daily"):
     token = config.get("GH_OAUTH_TOKEN", False)
     digests = {}
     for (ml, target) in mls.iteritems():
-        if target.has_key("digest:%s" % period.lower()):
-            digests[ml] = target["digest:%s" % period.lower()]
+        if target.has_key("digest:%s" % period.lower()) or target.has_key("summary:%s" % period.lower()):
+            digests[ml] =  target.get("digest:%s" % period.lower(), target.get("summary:%s" % period.lower()))
+            # we accept both list of digests or single digest in the configuration
             if not isinstance(digests[ml], list):
                 digests[ml] = [digests[ml]]
+            # Marking digests that are summary
+            # since we need them to show content even if there was no recent
+            # activity
+            if target.has_key("summary:%s" % period.lower()):
+                digests[ml] = [dict(d, summary = True) for d in digests[ml]]
     for (ml, digest) in digests.iteritems():
         for d in digest:
             repos = d["repos"]
@@ -194,22 +212,28 @@ def sendDigest(config, period="daily"):
             events["repos"] = [{"name": r, "shortname": r.split("/")[1], "url": "https://github.com/" + r, "last": i==len(repos)-1} for i,r in enumerate(repos)]
             events["activeissuerepos"] = []
             events["activeprrepos"] = []
+            events["repostatus"] = []
             events["period"] = duration.capitalize()
             for repo in repos:
                 data = extractDigestInfo(listGithubEvents(repo, token, until), d.get("eventFilter", None))
+                data["repo"] = getRepoData(repo, token)
                 data["name"] = repo
                 if data["errors"]:
                     events["errors"] = data["errors"]
-                if data["activeissue"]:
-                    events["activeissuerepos"].append(data)
-                if data["activepr"]:
-                    events["activeprrepos"].append(data)
+                if d.has_key("summary"):
+                    events["repostatus"].append(data)
+                else:
+                    if data["activeissue"]:
+                        events["activeissuerepos"].append(data)
+                    if data["activepr"]:
+                        events["activeprrepos"].append(data)
                 events["filtered"] = d.get("eventFilter", None)
                 events["labels"] = andify(d.get("eventFilter", {}).get("label", []))
                 events["topic"] = d.get("topic", None)
             events["activeissues"] = len(events["activeissuerepos"])
             events["activeprs"] = len(events["activeprrepos"])
-            if events["activeissues"] > 0 or events["activeprs"] > 0:
+            events["summary"] = len(events["repostatus"])
+            if events["activeissues"] > 0 or events["activeprs"] > 0 or events["summary"] > 0:
                 templates, error = loadTemplates("digest", config["TEMPLATES_DIR"], '/mls/' + ml + '/', duration)
                 if not len(templates):
                     raise InvalidConfiguration("No template for %s digest targeted at %s" % (duration, ml))
