@@ -6,7 +6,14 @@
 {{#filtered}}Events filtered by label {{#labels}}"{{name}}"{{^last}}, {{/last}}{{/labels}}
 
 {{/filtered}}
-{{#activeissues}}Issues
+{{#summary}}Repositories
+-----
+{{#repostatus}}* {{name}}
+ - open issues and pull requests: {{repo.open_issues_count}}
+ - activity on issues: +{{newissues.count}}/-{{closedissues.count}}/💬{{issuecommentscount}}
+ - activity on pull requests: +{{newpr.count}}/-{{mergedpr.count}}/💬{{prcommentscount}}
+
+{{/repostatus}}{{/summary}}{{#activeissues}}Issues
 ------
 {{#activeissuerepos}}
 * {{name}} (+{{newissues.count}}/-{{closedissues.count}}/💬{{issuecommentscount}})

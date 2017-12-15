@@ -26,7 +26,14 @@ li { margin-bottom: .2em; }
 {{#filtered}}<p>Events filtered by label {{#labels}}"{{name}}"{{^last}}, {{/last}}{{/labels}}</p>
 {{/filtered}}
 
-{{#activeissues}}<h2>Issues</h2>
+{{#summary}}<h2>Repositories</h2>
+{{#repostatus}}<h3>{{name}}</h3>
+<ul>
+ <li>open issues and pull requests: {{repo.open_issues_count}}</li>
+ <li>activity on issues: +{{newissues.count}}/-{{closedissues.count}}/💬{{issuecommentscount}}</li>
+ <li>activity on pull requests: +{{newpr.count}}/-{{mergedpr.count}}/💬{{prcommentscount}}</li>
+</ul>
+{{/repostatus}}{{/summary}}{{#activeissues}}<h2>Issues</h2>
 
 {{#activeissuerepos}}
 <h3>{{name}} (+{{newissues.count}}/-{{closedissues.count}}/💬{{issuecommentscount}})</h3>
