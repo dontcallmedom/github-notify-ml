@@ -28,7 +28,7 @@
             },
             {
                 "repos": ["w3c/webrtc-pc"],
-                "eventFilter": {"label": ["PR exists"]},
+                "eventFilter": {"label": ["PR exists"], "notlabel": ["List discussion needed"]},
                 "topic": "Issues with proposed edits"
             }
         ],

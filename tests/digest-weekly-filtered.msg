@@ -7,18 +7,16 @@ Content-Type: text/plain; charset="utf-8"; format="flowed"
 
 
 
-Events filtered by label "PR exists"
+Events with label "PR exists" and without label "List discussion needed"
 
 
 Issues
 ------
-* w3c/webrtc-pc (+0/-1/💬8)
+* w3c/webrtc-pc (+0/-1/💬5)
 
-  2 issues received 8 new comments:
+  1 issues received 5 new comments:
   - #888 Section 6.2:  Issue 3 - buffered data at transport close (5 by jesup, feross, taylor-b, alvestrand)
     https://github.com/w3c/webrtc-pc/issues/888
-  - #714 STUN/TURN OAuth token auth parameter passing (3 by juberti, misi)
-    https://github.com/w3c/webrtc-pc/issues/714
 
 
   1 issues closed:
