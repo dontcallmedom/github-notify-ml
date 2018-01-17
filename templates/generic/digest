@@ -3,7 +3,7 @@
 {{#errors.count}}Errors while compiling the digest:
 {{#errors.list}} - {{error}}{{/errors.list}}{{/errors.count}}
 
-{{#filtered}}Events filtered by label {{#labels}}"{{name}}"{{^last}}, {{/last}}{{/labels}}
+{{#filtered}}Events {{#filteredlabels}}with label {{#labels}}"{{name}}"{{^last}}, {{/last}}{{/labels}}{{#filteredantilabels}} and {{/filteredantilabels}}{{/filteredlabels}}{{#filteredantilabels}}without label {{#antilabels}}"{{name}}"{{^last}}, {{/last}}{{/antilabels}}{{/filteredantilabels}}
 
 {{/filtered}}
 {{#summary}}Repositories

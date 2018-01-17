@@ -23,7 +23,7 @@ li { margin-bottom: .2em; }
 </ul>
 {{/errors.count}}
 
-{{#filtered}}<p>Events filtered by label {{#labels}}"{{name}}"{{^last}}, {{/last}}{{/labels}}</p>
+{{#filtered}}<p>Events {{#filteredlabels}}with label {{#labels}}"{{name}}"{{^last}}, {{/last}}{{/labels}}{{#filteredantilabels}} and {{/filteredantilabels}}{{/filteredlabels}}{{#filteredantilabels}}without label {{#antilabels}}"{{name}}"{{^last}}, {{/last}}{{/antilabels}}{{/filteredantilabels}}</p>
 {{/filtered}}
 
 {{#summary}}<h2>Repositories</h2>

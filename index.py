@@ -141,7 +141,7 @@ def extractDigestInfo(events, eventFilter=None):
     filtered_events = events["repo"]
     errors = filter(lambda x: x.get("error"), events["repo"])
     if (eventFilter):
-        filtered_events = filter(lambda x: filter_event_payload(eventFilter, x.get("payload", {})), events["repo"])
+        filtered_events = filter(lambda x: filter_labeled_issue(eventFilter, x.get("payload", {})), events["repo"])
 
     newissues = filter(isNew, filter(isIssue, filtered_events))
     closedissues = filter(isClosed, filter(isIssue, filtered_events))
@@ -228,7 +228,10 @@ def sendDigest(config, period="daily"):
                     if data["activepr"]:
                         events["activeprrepos"].append(data)
                 events["filtered"] = d.get("eventFilter", None)
+                events["filteredlabels"] = len(d.get("eventFilter", {}).get("label",[])) > 0
+                events["filteredantilabels"] = len(d.get("eventFilter", {}).get("notlabel",[])) > 0
                 events["labels"] = andify(d.get("eventFilter", {}).get("label", []))
+                events["antilabels"] = andify(d.get("eventFilter", {}).get("notlabel", []))
                 events["topic"] = d.get("topic", None)
             events["activeissues"] = len(events["activeissuerepos"])
             events["activeprs"] = len(events["activeprrepos"])
@@ -290,20 +293,34 @@ def w3cRequest(config, postbody):
         sentMail.append(sendMail(config["SMTP_HOST"], parts, from_addr, "W3C Webmaster via W3C API", to, subject))
     return reportSentMail(sentMail, errors)
 
-def filter_event_payload(eventFilter, payload):
-    labels = eventFilter["label"]
+def filter_labeled_event(eventFilter, event):
+    labels = eventFilter.get("label", None)
+    if labels and not type(labels) == list:
+        labels = [labels]
+    # not dealing with "notlabel" since it's not clear it makes
+    # sense for "labeled" events
+    event_label = event.get("label",{})
+    if event_label.get("name") in labels:
+        return event
+
+def filter_labeled_issue(eventFilter, issue):
+    labels = eventFilter.get("label", None)
     # backwards compat, since initially this took a single string
     # see https://github.com/dontcallmedom/github-notify-ml/issues/22
     if labels and not type(labels) == list:
         labels = [labels]
-    labelTarget = payload.get("issue", payload.get("pull_request", {})).get("labels", [])
+    antilabels = eventFilter.get("notlabel", None)
+    issue_labels = issue.get("issue", issue.get("pull_request", {})).get("labels", [])
     labelFilter = lambda x: x.get("name") in labels
+    antilabelFilter = lambda x: x.get("name") in antilabels
+    has_label = True
+    has_not_antilabel = True
     if labels:
-        if labelFilter(payload.get("label", {})):
-            return payload
-        return filter(labelFilter, labelTarget)
-    return payload
-
+        has_label = len(filter(labelFilter, issue_labels)) > 0
+    if antilabels:
+        has_not_antilabel = len(filter(antilabelFilter, issue_labels)) == 0
+    if has_label and has_not_antilabel:
+        return issue
 
 def githubRequest(config, postbody):
     remote_addr = os.environ.get('HTTP_X_FORWARDED_FOR', os.environ.get('REMOTE_ADDR'))
@@ -377,7 +394,11 @@ def githubRequest(config, postbody):
             if event not in repo['events'] and (not repo_meta.has_key("branch") or event not in repo.get('branches', {}).get(repo_meta['branch'], [])):
                 continue
             if repo.has_key("eventFilter"):
-                relevant_payload = filter_event_payload(repo["eventFilter"], payload)
+                relevant_payload = False
+                if payload.get("action") == "labeled":
+                    relevant_payload = filter_labeled_event(repo["eventFilter"], payload)
+                else:
+                    relevant_payload = filter_labeled_issue(repo["eventFilter"], payload)
                 if not relevant_payload:
                     continue
 
