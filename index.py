@@ -160,6 +160,7 @@ def extractDigestInfo(events, eventFilter=None):
             issue["commentscount"] = 0
             issue["commentors"] = set()
             issue["ispr"] = comment["payload"]["issue"].has_key("pull_request")
+            issue["labels"] = comment["payload"]["issue"]["labels"]
             commentedissues[number] = issue
         commentedissues[number]["commentscount"] += 1
         commentedissues[number]["commentors"].add(comment["actor"]["display_login"])
