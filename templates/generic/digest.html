@@ -50,19 +50,19 @@ li { margin-bottom: .35em; }
 <h3>{{name}} (+{{newissues.count}}/-{{closedissues.count}}/💬{{issuecommentscount}})</h3>
 {{#newissues.count}}  <p class="new">{{.}} issues created:</p>
   <ul>{{#newissues.list}}
-  <li>#{{payload.issue.number}} <a href="{{payload.issue.html_url}}">{{payload.issue.title}}</a> (by {{actor.display_login}}) {{#payload.issue.labels}}<span class="label" style="background-color: #{{color}}">{{name}}</span> {{/payload.issue.labels}}</li>
+  <li>#{{payload.issue.number}} <a href="{{payload.issue.html_url}}">{{payload.issue.title}}</a> (by {{actor.display_login}}) {{#payload.issue.labels}}<span class="label" style="background-color: #{{color}}; color: #{{text_color}}">{{name}}</span> {{/payload.issue.labels}}</li>
   {{/newissues.list}}</ul>
 {{/newissues.count}}
 
 {{#commentedissues.count}}  <p>{{.}} issues received {{issuecommentscount}} new comments:</p>
   <ul>{{#commentedissues.list}}
-  <li>#{{number}} <a href="{{url}}">{{title}}</a> ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}}) {{#labels}}<span class="label" style="background-color: #{{color}}">{{name}}</span> {{/labels}}</li>
+  <li>#{{number}} <a href="{{url}}">{{title}}</a> ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}}) {{#labels}}<span class="label" style="background-color: #{{color}}; color: #{{text_color}}">{{name}}</span> {{/labels}}</li>
   {{/commentedissues.list}}</ul>
 {{/commentedissues.count}}
 
 {{#closedissues.count}}  <p>{{.}} issues closed:</p>
   <ul>{{#closedissues.list}}
-  <li>#{{payload.issue.number}} <a href="{{payload.issue.html_url}}">{{payload.issue.title}}</a> {{#payload.issue.labels}}<span class="label" style="background-color: #{{color}}">{{name}}</span> {{/payload.issue.labels}}</li>
+  <li>#{{payload.issue.number}} <a href="{{payload.issue.html_url}}">{{payload.issue.title}}</a> {{#payload.issue.labels}}<span class="label" style="background-color: #{{color}}; color: #{{text_color}}">{{name}}</span> {{/payload.issue.labels}}</li>
   {{/closedissues.list}}</ul>
 {{/closedissues.count}}
 
@@ -73,19 +73,19 @@ li { margin-bottom: .35em; }
 <h3>{{name}} (+{{newpr.count}}/-{{mergedpr.count}}/💬{{prcommentscount}})</h3>
 {{#newpr.count}}  <p class="new">{{.}} pull requests submitted:</p>
   <ul>{{#newpr.list}}
-  <li>#{{payload.pull_request.number}} <a href="{{payload.pull_request.html_url}}">{{payload.pull_request.title}}</a> (by {{actor.display_login}}) {{#payload.pull_request.labels}}<span class="label" style="background-color: #{{color}}">{{name}}</span> {{/payload.pull_request.labels}}</li>
+  <li>#{{payload.pull_request.number}} <a href="{{payload.pull_request.html_url}}">{{payload.pull_request.title}}</a> (by {{actor.display_login}}) {{#payload.pull_request.labels}}<span class="label" style="background-color: #{{color}}; color: #{{text_color}}">{{name}}</span> {{/payload.pull_request.labels}}</li>
   {{/newpr.list}}</ul>
 {{/newpr.count}}
 
 {{#commentedpr.count}}  <p>{{.}} pull requests received {{prcommentscount}} new comments:</p>
   <ul>{{#commentedpr.list}}
-  <li>#{{number}} <a href="{{url}}">{{title}}</a> ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}}) {{#labels}}<span class="label" style="background-color: #{{color}}">{{name}}</span> {{/labels}}</li>
+  <li>#{{number}} <a href="{{url}}">{{title}}</a> ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}}) {{#labels}}<span class="label" style="background-color: #{{color}}; color: #{{text_color}}">{{name}}</span> {{/labels}}</li>
   {{/commentedpr.list}}</ul>
 {{/commentedpr.count}}
 
 {{#mergedpr.count}}  <p>{{.}} pull requests merged:</p>
   <ul>{{#mergedpr.list}}
-  <li>#{{payload.pull_request.number}} <a href="{{payload.pull_request.html_url}}">{{payload.pull_request.title}}</a> {{#payload.pull_request.labels}}<span class="label" style="background-color: #{{color}}">{{name}}</span> {{/payload.pull_request.labels}}</li>
+  <li>#{{payload.pull_request.number}} <a href="{{payload.pull_request.html_url}}">{{payload.pull_request.title}}</a> {{#payload.pull_request.labels}}<span class="label" style="background-color: #{{color}}; color: #{{text_color}}">{{name}}</span> {{/payload.pull_request.labels}}</li>
   {{/mergedpr.list}}</ul>
 {{/mergedpr.count}}
 

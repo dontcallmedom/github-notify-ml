@@ -138,7 +138,7 @@ def extractDigestInfo(events, eventFilter=None):
     isClosed = lambda x: x.get("payload",{}).get("action") == "closed"
     isMerged = lambda x: x.get("payload",{}).get("pull_request",{}).get("merged")
 
-    filtered_events = events["repo"]
+    filtered_events = [add_label_text_colors(e) for e in events["repo"]]
     errors = filter(lambda x: x.get("error"), events["repo"])
     if (eventFilter):
         filtered_events = filter(lambda x: filter_labeled_issue(eventFilter, x.get("payload", {})), events["repo"])
@@ -322,6 +322,21 @@ def filter_labeled_issue(eventFilter, issue):
         has_not_antilabel = len(filter(antilabelFilter, issue_labels)) == 0
     if has_label and has_not_antilabel:
         return issue
+
+def add_label_text_colors(event):
+    labels = event.get("payload", {}).get("issue", event.get("pull_request", event)).get("labels", [])
+    for label in labels:
+        bg_color = label['color']
+        bg_rgb = int(bg_color, 16)
+        bg_r = (bg_rgb >> 16) & 0xff
+        bg_g = (bg_rgb >>  8) & 0xff
+        bg_b = (bg_rgb >>  0) & 0xff
+        luma = 0.2126 * bg_r + 0.7152 * bg_g + 0.0722 * bg_b # ITU-R BT.709
+        if luma < 128:
+            label['text_color'] = 'ffffff'
+        else:
+            label['text_color'] = '000000'
+    return event
 
 def githubRequest(config, postbody):
     remote_addr = os.environ.get('HTTP_X_FORWARDED_FOR', os.environ.get('REMOTE_ADDR'))
