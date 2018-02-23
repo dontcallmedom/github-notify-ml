@@ -34,7 +34,7 @@ li { margin-bottom: .35em; }
 </ul>
 {{/errors.count}}
 
-{{#filtered}}<p>Events {{#filteredlabels}}with label {{#labels}}<span class="label">{{name}}</span>{{^last}}, {{/last}}{{/labels}}{{#filteredantilabels}} and {{/filteredantilabels}}{{/filteredlabels}}{{#filteredantilabels}}without label {{#antilabels}}"{{name}}"{{^last}}, {{/last}}{{/antilabels}}{{/filteredantilabels}}</p>
+{{#filtered}}<p>Events {{#filteredlabels}}with label {{#labels}}<span class="label" style="background-color: #005a9c">{{name}}</span>{{^last}}, {{/last}}{{/labels}}{{#filteredantilabels}} and {{/filteredantilabels}}{{/filteredlabels}}{{#filteredantilabels}}without label {{#antilabels}}"{{name}}"{{^last}}, {{/last}}{{/antilabels}}{{/filteredantilabels}}</p>
 {{/filtered}}
 
 {{#summary}}<h2>Repositories</h2>
