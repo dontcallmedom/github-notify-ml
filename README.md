@@ -1,5 +1,7 @@
 index.py is a python CGI script that provides a Webhook to be used as a github hook endpoint to send mail to a set of email addresses when specific events (e.g. push, new issues, etc) happen in specific repos.
 
+It can also be used without a hook to send a digest of activity across a set of defined repositories for a given period. In that mode, it is limited to [300 events](https://developer.github.com/v3/activity/events/#list-repository-events) in the said period for a given repo.
+
 It can also be used as a [W3C hook](https://w3c.github.io/w3c-api/webhooks) endpoint to send mail when TR documents get published.
 
 The set of mailing lists, repos / TR documents and events is configured in a JSON file, named `mls.json` that lives in the same directory as the webhook, with the following structure:
