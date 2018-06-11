@@ -1,4 +1,4 @@
-{{period}} github digest ({{#topic}}{{.}}{{/topic}}{{^topic}}{{#repos}}{{shortname}}{{^last}}, {{/last}}{{/repos}}{{/topic}})
+{{period}} github digest ({{#topic}}{{{.}}}{{/topic}}{{^topic}}{{#repos}}{{shortname}}{{^last}}, {{/last}}{{/repos}}{{/topic}})
 
 {{#errors.count}}Errors while compiling the digest:
 {{#errors.list}} - {{error}}{{/errors.list}}{{/errors.count}}
