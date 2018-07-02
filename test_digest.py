@@ -47,7 +47,7 @@ class SendEmailGithubTests(unittest.TestCase):
     @responses.activate
     @patch("smtplib.SMTP")
     def test_weekly_digest(self, mock_smtp):
-        self.do_digest("Wednesday", [{"dom@localhost":"tests/digest-weekly.msg"}, {"dom@localhost":"tests/digest-weekly-filtered.msg", "html": True}], mock_smtp)
+        self.do_digest("Wednesday", [{"dom@localhost":"tests/digest-weekly.msg"}, {"dom@localhost":"tests/digest-weekly-filtered.msg", "html": True}, {"dom@localhost":"tests/digest-weekly-repofiltered.msg"}], mock_smtp)
 
     @responses.activate
     @patch("smtplib.SMTP")

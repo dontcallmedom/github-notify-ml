@@ -30,11 +30,19 @@
                 "repos": ["w3c/webrtc-pc"],
                 "eventFilter": {"label": ["PR exists"], "notlabel": ["List discussion needed"]},
                 "topic": "Issues with proposed edits"
-            }
-        ],
-        "digest:tuesday": [
+            },
             {
-                "repos": ["w3c/mediacapture-main"]
+                "topic": "Issues with per-repo label rules",
+                "sources": [
+                  {
+                    "repos": ["w3c/webcrypto"],
+                    "eventFilter": {"label": ["editorial"]}
+                  },
+                  {
+                    "repos": ["w3c/webrtc-pc"],
+                    "eventFilter": {"notlabel": ["List discussion needed"]}
+                  }
+                ]
             }
         ],
         "summary:quarterly": [
