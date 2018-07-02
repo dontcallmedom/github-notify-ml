@@ -207,16 +207,29 @@ def sendDigest(config, period="daily"):
                 digests[ml] = [dict(d, summary = True) for d in digests[ml]]
     for (ml, digest) in digests.iteritems():
         for d in digest:
-            repos = d["repos"]
-            events = {}
+            events = {"repos": []}
+            repos = []
             events["date"] = datetime.now().strftime("%A %B %d, %Y")
-            events["repos"] = [{"name": r, "shortname": r.split("/")[1], "url": "https://github.com/" + r, "last": i==len(repos)-1} for i,r in enumerate(repos)]
+
             events["activeissuerepos"] = []
             events["activeprrepos"] = []
             events["repostatus"] = []
             events["period"] = duration.capitalize()
+
+            # a digest can have either an event filter that applies to all its repos
+            # or a event filter specific to subset of repos
+            # cf https://github.com/dontcallmedom/github-notify-ml/issues/43
+            # For the latter case, we enable an optional array "sources"
+            # which lists repos/eventFilter dictionaries
+            sources = d.get("sources", [{"repos": d.get("repos", []), "eventFilter": d.get("eventFilter", None)}])
+            eventFilters = {}
+            for s in sources:
+                repos += s["repos"]
+                events["repos"] += [{"name": r, "shortname": r.split("/")[1], "url": "https://github.com/" + r, "last": i==len(repos)-1} for i,r in enumerate(s["repos"])]
+                for r in s["repos"]:
+                    eventFilters[r] = s.get("eventFilter", None)
             for repo in repos:
-                data = extractDigestInfo(listGithubEvents(repo, token, until), d.get("eventFilter", None))
+                data = extractDigestInfo(listGithubEvents(repo, token, until), eventFilters[repo])
                 data["repo"] = getRepoData(repo, token)
                 data["name"] = repo
                 if data["errors"]:

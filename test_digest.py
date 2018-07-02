@@ -47,15 +47,15 @@ class SendEmailGithubTests(unittest.TestCase):
     @responses.activate
     @patch("smtplib.SMTP")
     def test_weekly_digest(self, mock_smtp):
-        self.do_digest("Wednesday", [{"dom@localhost":"tests/digest-weekly.msg"}, {"dom@localhost":"tests/digest-weekly-filtered.msg"}], True, mock_smtp)
+        self.do_digest("Wednesday", [{"dom@localhost":"tests/digest-weekly.msg"}, {"dom@localhost":"tests/digest-weekly-filtered.msg", "html": True}, {"dom@localhost":"tests/digest-weekly-repofiltered.msg"}], mock_smtp)
 
     @responses.activate
     @patch("smtplib.SMTP")
     def test_quarterly_summary(self, mock_smtp):
-        self.do_digest("quarterly", [{"dom@localhost":"tests/summary-quarterly.msg"}], False, mock_smtp)
+        self.do_digest("quarterly", [{"dom@localhost":"tests/summary-quarterly.msg"}], mock_smtp)
 
 
-    def do_digest(self, period, refs, html, mock_smtp):
+    def do_digest(self, period, refs, mock_smtp):
         import email
         instance = mock_smtp.return_value
         sendDigest(config, period)
@@ -74,7 +74,7 @@ class SendEmailGithubTests(unittest.TestCase):
                                    'body': sent_email.get_payload(0).get_payload(decode=True).decode('utf-8')})
                 sent_parts.append({'headers': sent_email.get_payload(1).as_string().split('\n\n')[0],
                                  'body': sent_email.get_payload(1).get_payload(decode=True).decode('utf-8')})
-                if html:
+                if refs[counter].get("html", False):
                     ref_parts.append(io.open(refs[counter][args[1][0]] + '.html').read())
             else:
                 sent_parts.append({'headers': args[2].split("\n\n")[0],
