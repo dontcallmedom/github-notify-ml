@@ -1,4 +1,4 @@
-Re: [{{{repository.name}}}] {{{issue.title}}}
+Re: [{{{repository.name}}}] {{{issue.title}}} (#{{{issue.number}}})
 {{{comment.body}}}
 
 -- 

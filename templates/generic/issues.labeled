@@ -1,4 +1,4 @@
-[{{{repository.name}}}] Issue: {{{issue.title}}} marked as {{{label.name}}}
+[{{{repository.name}}}] Issue: {{{issue.title}}} (#{{{issue.number}}}) marked as {{{label.name}}}
 {{{sender.login}}} has just labeled an issue for {{{repository.html_url}}} as "{{{label.name}}}":
 
 == {{{issue.title}}} ==
