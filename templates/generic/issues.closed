@@ -1,2 +1,2 @@
-Closed: [{{{repository.name}}}] {{{issue.title}}}
+Closed: [{{{repository.name}}}] {{{issue.title}}} (#{{{issue.number}}})
 {{{sender.login}}} closed this issue. See {{{issue.html_url}}}
