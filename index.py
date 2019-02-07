@@ -47,6 +47,8 @@ def event_id(event, payload):
         return payload["head_commit"]["id"]
     elif event.split(".")[0] == "pull_request":
         return payload["pull_request"]["id"]
+    elif event.split(".")[0] == "repository":
+        return payload["repository"]["id"]
 
 def event_timestamp(event, payload):
     def timestamp(date):
@@ -61,6 +63,8 @@ def event_timestamp(event, payload):
         ts = payload["repository"]["pushed_at"]
     elif event == "issue_comment.created":
         ts = payload["comment"]["created_at"]
+    elif event == "repository.created":
+        ts = payload["repository"]["created_at"]
     elif event.split(".")[0] in ["issues", "pull_request"]:
         action = event.split(".")[1]
         key = "pull_request" if event.split(".")[0] == "pull_request" and payload.has_key("pull_request") else "issue"

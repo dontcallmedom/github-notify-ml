@@ -1,0 +1,2 @@
+{{repository.full_name}} created by {{sender.login}}
+{{{sender.login}}} has just created a new repository: {{{repository.full_name}}}
