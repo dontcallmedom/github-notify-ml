@@ -19,6 +19,9 @@
         "w3c/mediacapture-main": {
             "events": ["issue_comment.created"]
         },
+        "regexp:Codertocat/.*": {
+            "events": ["repository.created", "repository.deleted"]
+        },
         "w3c/webrtc-pc": {
             "events": ["pull_request.closed"]
         },

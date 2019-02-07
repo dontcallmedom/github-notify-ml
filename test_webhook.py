@@ -67,6 +67,14 @@ class SendEmailGithubTests(unittest.TestCase):
             self.assertMultiLineEqual(sent_body, ref_body)
 
     @patch("smtplib.SMTP")
+    def test_repo_created_notif(self, mock_smtp):
+        self.do_gh_operation("repository", "tests/repo-created.json", {"dom@localhost": "tests/repo-created.msg"}, mock_smtp)
+
+    @patch("smtplib.SMTP")
+    def test_repo_deleted_notif(self, mock_smtp):
+        self.do_gh_operation("repository", "tests/repo-deleted.json", {"dom@localhost": "tests/repo-deleted.msg"}, mock_smtp)
+
+    @patch("smtplib.SMTP")
     def test_push_notif(self, mock_smtp):
         self.do_gh_operation("push", "tests/push-notif.json", {"dom@localhost": "tests/push-notif.msg"}, mock_smtp)
 
