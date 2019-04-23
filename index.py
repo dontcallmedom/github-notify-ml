@@ -14,6 +14,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
+from email.utils import formataddr
 from email.generator import Generator
 import email.charset
 from cStringIO import StringIO
@@ -529,10 +530,7 @@ def sendMail(smtp, parts, from_addr, from_name, to_addr, subject, msgid=None, in
             if part['subtype'] == 'plain':
                 alt.set_param('format', 'flowed')
             msg.attach(alt)
-    readable_from = email.header.Header(charset='utf8', header_name='From')
-    readable_from.append(from_name)
-    readable_from.append('<%s>' % (from_addr), charset='us-ascii')
-    msg['From'] = readable_from
+    msg['From'] = formataddr((str(Header(from_name,'utf-8')),from_addr))
     msg['To'] = ",".join(to_addr)
     msg['Subject'] = Header(subject, 'utf-8')
     if msgid:
