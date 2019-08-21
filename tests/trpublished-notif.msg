@@ -1,7 +1,7 @@
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain; charset="utf-8"; format="flowed"
-From: =?utf-8?q?W3C_Webmaster_via_W3C_API?= <test@localhost>
+From: W3C Webmaster via W3C API <test@localhost>
 To: dom@localhost
 Subject: "SHACL Use Cases and Requirements" published as a Working Draft
 

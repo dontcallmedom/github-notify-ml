@@ -63,7 +63,7 @@ class SendEmailGithubTests(unittest.TestCase):
         counter = 0
         import pprint
         for (name, args, kwargs) in instance.sendmail.mock_calls:
-            self.assertEqual(args[0], u"test@localhost")
+            self.assertEqual(args[0], "test@localhost")
             self.assertIn(args[1][0], refs[counter])
             sent_email = email.message_from_string(args[2])
             sent_parts = []

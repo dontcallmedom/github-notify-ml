@@ -1,6 +1,6 @@
 # coding=utf-8
 import os
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
 import responses
 from index import serveRequest
@@ -36,23 +36,22 @@ class PythonCGIHTTPRequestHandler(BaseHTTPRequestHandler):
             key,value = line.split(":", 1)
             headers[key] = value
         status = 200
-        if headers.has_key("Status"):
+        if "Status" in headers:
             status = int(headers["Status"].strip().split(" ")[0])
             del headers["Status"]
         self.send_response(status)
-        for header,value in headers.iteritems():
+        for header,value in headers.items():
             self.send_header(header,value)
         self.end_headers()
-        self.wfile.write(body)
-        self.wfile.close()
+        self.wfile.write(body.encode('utf-8'))
 
     def do_POST(self):
         os.environ['REQUEST_METHOD'] = "POST"
-        if self.headers.has_key("X-Github-Event"):
+        if "X-Github-Event" in self.headers:
             os.environ['HTTP_X_GITHUB_EVENT'] = self.headers["X-Github-Event"]
         else:
             os.environ.pop('HTTP_X_GITHUB_EVENT', None)
-        if self.headers.has_key("X-W3C-Webhook"):
+        if "X-W3C-Webhook" in self.headers:
             os.environ['HTTP_X_W3C_WEBHOOK'] = self.headers["X-W3C-Webhook"]
         else:
             os.environ.pop('HTTP_X_W3C_WEBHOOK', None)
@@ -65,19 +64,19 @@ class Server:
         responses.add(responses.GET, 'https://api.github.com/meta',
                       body='{"hooks":["127.0.0.0/8"]}', content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/users/dontcallmedom',
-                      body=u'{"name":"Dominique Hazaël-Massieux"}', content_type='application/json')
+                      body='{"name":"Dominique Hazaël-Massieux"}', content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/users/anssiko',
-                      body=u'{"name":"Anssi Kostiainen"}', content_type='application/json')
+                      body='{"name":"Anssi Kostiainen"}', content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/users/stefhak',
-                      body=u'{"name":"Stefan Hakansson"}', content_type='application/json')
+                      body='{"name":"Stefan Hakansson"}', content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/users/tobie',
-                      body=u'{"name":"Tobie Langel"}', content_type='application/json')
+                      body='{"name":"Tobie Langel"}', content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/users/alvestrand',
-                      body=u'{"name":"Harald Alvestrand"}', content_type='application/json')
+                      body='{"name":"Harald Alvestrand"}', content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/repos/w3c/mediacapture-main/pulls/150',
-                      body=u'{"id":31564006}', content_type='application/json')
+                      body='{"id":31564006}', content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/users/Codertocat',
-                      body=u'{"name":"Codertocat"}', content_type='application/json')
+                      body='{"name":"Codertocat"}', content_type='application/json')
 
         self.stop = threading.Event()
         server_address=('localhost',8000)
