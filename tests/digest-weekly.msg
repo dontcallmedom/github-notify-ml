@@ -25,11 +25,11 @@ Issues
 
 
   5 issues received 12 new comments:
-  - #888 Section 6.2:  Issue 3 - buffered data at transport close (5 by jesup, feross, taylor-b, alvestrand)
+  - #888 Section 6.2:  Issue 3 - buffered data at transport close (5 by alvestrand, feross, jesup, taylor-b)
     https://github.com/w3c/webrtc-pc/issues/888 [PR exists] 
   - #714 STUN/TURN OAuth token auth parameter passing (3 by juberti, misi)
     https://github.com/w3c/webrtc-pc/issues/714 [External feedback] [July interim topic] [List discussion needed] [November interim topic] [PR exists] 
-  - #803 Rules for negotiation-needed flag need to be updated for transceivers. (2 by taylor-b, aboba)
+  - #803 Rules for negotiation-needed flag need to be updated for transceivers. (2 by aboba, taylor-b)
     https://github.com/w3c/webrtc-pc/issues/803 [November interim topic] 
   - #942 Meta: auto-publish changes to the spec (1 by henbos)
     https://github.com/w3c/webrtc-pc/issues/942 
@@ -69,7 +69,7 @@ Pull requests
 
 
   7 pull requests received 10 new comments:
-  - #944 Effect of setting sender.track to null (4 by pthatcherg, aboba)
+  - #944 Effect of setting sender.track to null (4 by aboba, pthatcherg)
     https://github.com/w3c/webrtc-pc/pull/944 
   - #929 Have RTCSessionDescription's sdp member default to "" (1 by jan-ivar)
     https://github.com/w3c/webrtc-pc/pull/929 

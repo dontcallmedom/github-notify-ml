@@ -133,7 +133,7 @@ def listGithubEvents(repo, token, until):
     return events
 
 def andify(l):
-    return [{"name":x, "last": i ==len(l) -1} for i,x in enumerate(l)]
+    return [{"name":x, "last": i ==len(l) -1} for i,x in enumerate(sorted(l))]
 
 
 def extractDigestInfo(events, eventFilter=None):
