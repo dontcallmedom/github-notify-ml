@@ -72,18 +72,18 @@ Pull requests
 
 
   7 pull requests received 10 new comments:
-  - #944 Effect of setting sender.track to null (4 by pthatcherg, aboba)
-    https://github.com/w3c/webrtc-pc/pull/944 
-  - #929 Have RTCSessionDescription's sdp member default to "" (1 by jan-ivar)
-    https://github.com/w3c/webrtc-pc/pull/929 
-  - #939 Removed "stopped" from removeTrack (1 by aboba)
-    https://github.com/w3c/webrtc-pc/pull/939 
-  - #940 Use of "stopped" in insertDTMF and replaceTrack (1 by aboba)
-    https://github.com/w3c/webrtc-pc/pull/940 
-  - #920 Revise text dealing with with the ICE Agent/User Agent interactions. (1 by aboba)
-    https://github.com/w3c/webrtc-pc/pull/920 [November interim topic] 
   - #946 Splitting transceiver direction into "direction" and "currentDirection". (1 by aboba)
     https://github.com/w3c/webrtc-pc/pull/946 
+  - #944 Effect of setting sender.track to null (4 by pthatcherg, aboba)
+    https://github.com/w3c/webrtc-pc/pull/944 
+  - #940 Use of "stopped" in insertDTMF and replaceTrack (1 by aboba)
+    https://github.com/w3c/webrtc-pc/pull/940 
+  - #939 Removed "stopped" from removeTrack (1 by aboba)
+    https://github.com/w3c/webrtc-pc/pull/939 
+  - #929 Have RTCSessionDescription's sdp member default to "" (1 by jan-ivar)
+    https://github.com/w3c/webrtc-pc/pull/929 
+  - #920 Revise text dealing with with the ICE Agent/User Agent interactions. (1 by aboba)
+    https://github.com/w3c/webrtc-pc/pull/920 [November interim topic] 
   - #919 Removing incorrect statement related to IP leaking issue. (1 by vivienlacourba)
     https://github.com/w3c/webrtc-pc/pull/919 
 

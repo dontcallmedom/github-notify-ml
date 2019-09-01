@@ -180,11 +180,11 @@ def extractDigestInfo(events, eventFilter=None):
     data["errors"] =listify(errors)
     data["newissues"] = listify(newissues)
     data["closedissues"] = listify(closedissues)
-    data["commentedissues"] = listify(sorted([x for x in list(commentedissues.values()) if not x["ispr"]], key=lambda issue: -issue["commentscount"]))
+    data["commentedissues"] = listify(sorted([x for x in list(commentedissues.values()) if not x["ispr"]], key=lambda issue: -issue["number"]))
     data["issuecommentscount"] = reduce(lambda a,b: a + b["commentscount"], data["commentedissues"]["list"], 0)
     data["newpr"] = listify(newpr)
     data["mergedpr"] = listify(mergedpr)
-    data["commentedpr"] = listify(sorted([x for x in list(commentedissues.values()) if x["ispr"]], key=lambda issue: -issue["commentscount"]))
+    data["commentedpr"] = listify(sorted([x for x in list(commentedissues.values()) if x["ispr"]], key=lambda issue: -issue["number"]))
     data["prcommentscount"] = reduce(lambda a,b: a + b["commentscount"], data["commentedpr"]["list"], 0)
     data["activeissue"] = len(newissues) > 0 or len(closedissues) >0 or data["issuecommentscount"] > 0
     data["activepr"] = data["prcommentscount"] > 0 or len(newpr) > 0 or len(mergedpr) > 0
