@@ -30,14 +30,14 @@ Issues
 
 
   4 issues received 9 new comments:
-  - #888 Section 6.2:  Issue 3 - buffered data at transport close (5 by jesup, feross, taylor-b, alvestrand)
-    https://github.com/w3c/webrtc-pc/issues/888 [PR exists] 
-  - #803 Rules for negotiation-needed flag need to be updated for transceivers. (2 by taylor-b, aboba)
-    https://github.com/w3c/webrtc-pc/issues/803 [November interim topic] 
   - #942 Meta: auto-publish changes to the spec (1 by henbos)
     https://github.com/w3c/webrtc-pc/issues/942 
   - #927 What happens when setDirection() is called (1 by taylor-b)
     https://github.com/w3c/webrtc-pc/issues/927 [November interim topic] 
+  - #888 Section 6.2:  Issue 3 - buffered data at transport close (5 by alvestrand, feross, jesup, taylor-b)
+    https://github.com/w3c/webrtc-pc/issues/888 [PR exists] 
+  - #803 Rules for negotiation-needed flag need to be updated for transceivers. (2 by aboba, taylor-b)
+    https://github.com/w3c/webrtc-pc/issues/803 [November interim topic] 
 
 
   2 issues closed:
@@ -74,7 +74,7 @@ Pull requests
   7 pull requests received 10 new comments:
   - #946 Splitting transceiver direction into "direction" and "currentDirection". (1 by aboba)
     https://github.com/w3c/webrtc-pc/pull/946 
-  - #944 Effect of setting sender.track to null (4 by pthatcherg, aboba)
+  - #944 Effect of setting sender.track to null (4 by aboba, pthatcherg)
     https://github.com/w3c/webrtc-pc/pull/944 
   - #940 Use of "stopped" in insertDTMF and replaceTrack (1 by aboba)
     https://github.com/w3c/webrtc-pc/pull/940 
