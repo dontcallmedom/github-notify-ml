@@ -4,7 +4,8 @@ Content-Type: text/plain; charset="utf-8"; format="flowed"
 From: =?utf-8?q?Dominique_Haza=C3=ABl-Massieux_via_GitHub?= <test@localhost>
 To: dom@localhost
 Subject: [github-notify-ml] new commits pushed by dontcallmedom
-Message-ID: <push-d3cb75fab91fd7dec6cd8fff69063405d31c505b-1412783833-test@localhost>
+Message-ID: 
+ <push-d3cb75fab91fd7dec6cd8fff69063405d31c505b-1412783833-test@localhost>
 
 Per ml template!
 

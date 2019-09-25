@@ -17,7 +17,8 @@ from email.header import Header
 from email.utils import formataddr
 from email.generator import Generator
 import email.charset
-from cStringIO import StringIO
+from io import StringIO
+from functools import reduce
 
 email.charset.add_charset('utf-8', email.charset.QP, email.charset.QP, 'utf-8')
 
@@ -27,10 +28,10 @@ class InvalidConfiguration(Exception):
 def validate_repos(config):
     # TODO: Check that all configured repos have events with matching templates?
     # that they all have an email.to field?
-    mls = json.loads(io.open(config['mls'], 'r').read())
+    mls = get_mls(config)
     import os.path
-    for (ml, repos) in mls.iteritems():
-        for (repo,data) in repos.iteritems():
+    for (ml, repos) in mls.items():
+        for (repo,data) in repos.items():
             for e in data.get("events",[]):
                 generic_template = config['TEMPLATES_DIR'] + '/generic/' + e
                 ml_template = config['TEMPLATES_DIR'] + '/mls/' + ml + '/' + e
@@ -38,6 +39,11 @@ def validate_repos(config):
                 if not (os.path.isfile(generic_template) or os.path.isfile(ml_template)
                         or os.path.isfile(specific_template)):
                     raise InvalidConfiguration("No template matching event %s defined in %s in %s (looked at %s and %s)" % (e, config['mls'], repo, generic_template, specific_template))
+
+def get_mls(config):
+    with io.open(config['mls'], 'r') as filehandle:
+        mls = filehandle.read()
+    return json.loads(mls)
 
 def event_id(event, payload):
     if event.split(".")[0] == "issues":
@@ -68,7 +74,7 @@ def event_timestamp(event, payload):
         ts = payload["repository"]["created_at"]
     elif event.split(".")[0] in ["issues", "pull_request"]:
         action = event.split(".")[1]
-        key = "pull_request" if event.split(".")[0] == "pull_request" and payload.has_key("pull_request") else "issue"
+        key = "pull_request" if event.split(".")[0] == "pull_request" and "pull_request" in payload else "issue"
         if action == "opened":
             ts = payload[key]["created_at"]
         elif action == "closed":
@@ -113,8 +119,8 @@ def navigateGithubList(url, token, until, cumul = []):
     pageList = githubListReq.json()
     def posterior(item):
         return until.strftime("%Y-%m-%dT%H:%M:%SZ") <= item["created_at"]
-    cumul = cumul + filter(posterior, pageList)
-    if len(pageList) and posterior(pageList[-1]) and githubListReq.links.get("next", {}).has_key("url"):
+    cumul = cumul + list(filter(posterior, pageList))
+    if len(pageList) and posterior(pageList[-1]) and "url" in githubListReq.links.get("next", {}):
         return navigateGithubList(githubListReq.links["next"]["url"], token, until, cumul)
     else:
         return cumul
@@ -127,7 +133,7 @@ def listGithubEvents(repo, token, until):
     return events
 
 def andify(l):
-    return [{"name":x, "last": i ==len(l) -1} for i,x in enumerate(l)]
+    return [{"name":x, "last": i ==len(l) -1} for i,x in enumerate(sorted(l))]
 
 
 def extractDigestInfo(events, eventFilter=None):
@@ -144,41 +150,41 @@ def extractDigestInfo(events, eventFilter=None):
     isMerged = lambda x: x.get("payload",{}).get("pull_request",{}).get("merged")
 
     filtered_events = [add_label_text_colors(e) for e in events["repo"]]
-    errors = filter(lambda x: x.get("error"), events["repo"])
+    errors = [x for x in events["repo"] if x.get("error")]
     if (eventFilter):
-        filtered_events = filter(lambda x: filter_labeled_issue(eventFilter, x.get("payload", {})), events["repo"])
+        filtered_events = [x for x in events["repo"] if filter_labeled_issue(eventFilter, x.get("payload", {}))]
 
-    newissues = filter(isNew, filter(isIssue, filtered_events))
-    closedissues = filter(isClosed, filter(isIssue, filtered_events))
-    newpr = filter(isNew, filter(isPR, filtered_events))
-    mergedpr = filter(isMerged, filter(isClosed, filter(isPR, filtered_events)))
+    newissues = list(filter(isNew, list(filter(isIssue, filtered_events))))
+    closedissues = list(filter(isClosed, list(filter(isIssue, filtered_events))))
+    newpr = list(filter(isNew, list(filter(isPR, filtered_events))))
+    mergedpr = list(filter(isMerged, list(filter(isClosed, list(filter(isPR, filtered_events))))))
 
-    issuecomments = filter(isCreated, filter(isComment, filtered_events))
+    issuecomments = list(filter(isCreated, list(filter(isComment, filtered_events))))
     commentedissues = {}
     for comment in issuecomments:
         number = comment["payload"]["issue"]["number"]
-        if not commentedissues.has_key(number):
+        if number not in commentedissues:
             issue = {}
             issue["number"] = number
             issue["title"] = comment["payload"]["issue"]["title"]
             issue["url"] = comment["payload"]["issue"]["html_url"]
             issue["commentscount"] = 0
             issue["commentors"] = set()
-            issue["ispr"] = comment["payload"]["issue"].has_key("pull_request")
+            issue["ispr"] = "pull_request" in comment["payload"]["issue"]
             issue["labels"] = comment["payload"]["issue"]["labels"]
             commentedissues[number] = issue
         commentedissues[number]["commentscount"] += 1
         commentedissues[number]["commentors"].add(comment["actor"]["display_login"])
-    for number, issue in commentedissues.iteritems():
+    for number, issue in commentedissues.items():
         commentedissues[number]["commentors"] = andify(commentedissues[number]["commentors"])
     data["errors"] =listify(errors)
     data["newissues"] = listify(newissues)
     data["closedissues"] = listify(closedissues)
-    data["commentedissues"] = listify(sorted(filter(lambda x: not x["ispr"], commentedissues.values()), key=lambda issue: -issue["commentscount"]))
+    data["commentedissues"] = listify(sorted([x for x in list(commentedissues.values()) if not x["ispr"]], key=lambda issue: -issue["number"]))
     data["issuecommentscount"] = reduce(lambda a,b: a + b["commentscount"], data["commentedissues"]["list"], 0)
     data["newpr"] = listify(newpr)
     data["mergedpr"] = listify(mergedpr)
-    data["commentedpr"] = listify(sorted(filter(lambda x: x["ispr"], commentedissues.values()), key=lambda issue: -issue["commentscount"]))
+    data["commentedpr"] = listify(sorted([x for x in list(commentedissues.values()) if x["ispr"]], key=lambda issue: -issue["number"]))
     data["prcommentscount"] = reduce(lambda a,b: a + b["commentscount"], data["commentedpr"]["list"], 0)
     data["activeissue"] = len(newissues) > 0 or len(closedissues) >0 or data["issuecommentscount"] > 0
     data["activepr"] = data["prcommentscount"] > 0 or len(newpr) > 0 or len(mergedpr) > 0
@@ -196,11 +202,11 @@ def sendDigest(config, period="daily"):
     else:
         until = datetime.now() - timedelta(1)
         duration = period
-    mls = json.loads(io.open(config['mls'], 'r').read())
+    mls = get_mls(config)
     token = config.get("GH_OAUTH_TOKEN", False)
     digests = {}
-    for (ml, target) in mls.iteritems():
-        if target.has_key("digest:%s" % period.lower()) or target.has_key("summary:%s" % period.lower()):
+    for (ml, target) in mls.items():
+        if "digest:%s" % period.lower() in target or "summary:%s" % period.lower() in target:
             digests[ml] =  target.get("digest:%s" % period.lower(), target.get("summary:%s" % period.lower()))
             # we accept both list of digests or single digest in the configuration
             if not isinstance(digests[ml], list):
@@ -208,9 +214,9 @@ def sendDigest(config, period="daily"):
             # Marking digests that are summary
             # since we need them to show content even if there was no recent
             # activity
-            if target.has_key("summary:%s" % period.lower()):
+            if "summary:%s" % period.lower() in target:
                 digests[ml] = [dict(d, summary = True) for d in digests[ml]]
-    for (ml, digest) in digests.iteritems():
+    for (ml, digest) in digests.items():
         for d in digest:
             events = {"repos": []}
             repos = []
@@ -239,7 +245,7 @@ def sendDigest(config, period="daily"):
                 data["name"] = repo
                 if data["errors"]:
                     events["errors"] = data["errors"]
-                if d.has_key("summary"):
+                if "summary" in d:
                     events["repostatus"].append(data)
                 else:
                     if data["activeissue"]:
@@ -272,13 +278,13 @@ def serveRequest(config, postbody):
         return output
     if request_method != 'POST':
         return
-    if os.environ.has_key('HTTP_X_GITHUB_EVENT'):
+    if 'HTTP_X_GITHUB_EVENT' in os.environ:
         return githubRequest(config, postbody)
-    elif os.environ.has_key('HTTP_X_W3C_WEBHOOK'):
+    elif 'HTTP_X_W3C_WEBHOOK' in os.environ:
         return w3cRequest(config, postbody)
 
 def w3cRequest(config, postbody):
-    mls = json.loads(io.open(config['mls'], 'r').read())
+    mls = get_mls(config)
 
     payload = json.loads(postbody)
     event = payload["event"]
@@ -289,13 +295,13 @@ def w3cRequest(config, postbody):
 
     trs = {}
     tr_prefix = "http://www.w3.org/TR/"
-    for (ml, mltr) in mls.iteritems():
-        for (url, conf) in mltr.iteritems():
+    for (ml, mltr) in mls.items():
+        for (url, conf) in mltr.items():
             if (url[0:len(tr_prefix)] == tr_prefix):
                 url = trimTrailingSlash(url)
                 conf["email"] = {"to": ml}
                 if (event in conf["events"]):
-                    if not trs.has_key("url"):
+                    if "url" not in trs:
                         trs[url] = []
                     trs[url].append(conf)
     target = trimTrailingSlash(payload["specversion"]["shortlink"])
@@ -335,9 +341,9 @@ def filter_labeled_issue(eventFilter, issue):
     has_label = True
     has_not_antilabel = True
     if labels:
-        has_label = len(filter(labelFilter, issue_labels)) > 0
+        has_label = len(list(filter(labelFilter, issue_labels))) > 0
     if antilabels:
-        has_not_antilabel = len(filter(antilabelFilter, issue_labels)) == 0
+        has_not_antilabel = len(list(filter(antilabelFilter, issue_labels))) == 0
     if has_label and has_not_antilabel:
         return issue
 
@@ -361,14 +367,14 @@ def githubRequest(config, postbody):
 
     # Store the IP address blocks that github uses for hook requests.
     headers = {}
-    if config.has_key("GH_OAUTH_TOKEN"):
+    if "GH_OAUTH_TOKEN" in config:
         headers['Authorization']="token %s" % (config["GH_OAUTH_TOKEN"])
     hook_blocks = requests.get('https://api.github.com/meta', headers=headers).json()['hooks']
     output = ""
 
     # Check if the request is from github.com
     for block in hook_blocks:
-        ip = ipaddress.ip_address(u'%s' % remote_addr)
+        ip = ipaddress.ip_address('%s' % remote_addr)
         if ipaddress.ip_address(ip) in ipaddress.ip_network(block):
             break #the remote_addr is within the network range of github
     else:
@@ -382,9 +388,9 @@ def githubRequest(config, postbody):
         output += "Content-Type: application/json\n\n"
         output += json.dumps({'msg': 'Hi!'})
         return output
-    mls = json.loads(io.open(config['mls'], 'r').read())
-    for (ml, mlrepos) in mls.iteritems():
-        for (reponame, repoconf) in mlrepos.iteritems():
+    mls = get_mls(config)
+    for (ml, mlrepos) in mls.items():
+        for (reponame, repoconf) in mlrepos.items():
             # don't fail on digests which takes a list rather than a dict
             if type(repoconf) != list:
                 repoconf["email"] = {"to":ml}
@@ -412,11 +418,11 @@ def githubRequest(config, postbody):
     sentMail = []
     errors = []
 
-    if payload.has_key("action"):
+    if "action" in payload:
         event = event + "." + payload['action']
 
-    for ml,repos in mls.iteritems():
-        for reponame in filter(repoMatch, repos.keys()):
+    for ml,repos in mls.items():
+        for reponame in filter(repoMatch, list(repos.keys())):
             tr_prefix = "http://www.w3.org/TR/"
             digest_prefix = "digest:"
             if reponame[0:len(tr_prefix)] == tr_prefix:
@@ -425,9 +431,9 @@ def githubRequest(config, postbody):
                 continue
             repo = repos[reponame]
 
-            if event not in repo['events'] and (not repo_meta.has_key("branch") or event not in repo.get('branches', {}).get(repo_meta['branch'], [])):
+            if event not in repo['events'] and ("branch" not in repo_meta or event not in repo.get('branches', {}).get(repo_meta['branch'], [])):
                 continue
-            if repo.has_key("eventFilter"):
+            if "eventFilter" in repo:
                 relevant_payload = False
                 if payload.get("action") == "labeled":
                     relevant_payload = filter_labeled_event(repo["eventFilter"], payload)
@@ -444,7 +450,7 @@ def githubRequest(config, postbody):
             frum = repo.get("email", {}).get("from", config["EMAIL_FROM"])
             msgid = "<%s-%s-%s-%s>" % (event, event_id(event, payload),
                                        event_timestamp(event, payload), frum)
-            target = "pull_request" if payload.has_key("pull_request") or payload.get("issue", {}).has_key("pull_request") else "issue"
+            target = "pull_request" if "pull_request" in payload or "pull_request" in payload.get("issue", {}) else "issue"
             (ref_event, ref_id) = refevent(event, payload, target, config.get("GH_OAUTH_TOKEN", False))
             inreplyto = None
             if ref_event and ref_id:
@@ -456,7 +462,7 @@ def githubRequest(config, postbody):
             headers = {}
             frum_name = ""
 
-            if config.has_key("GH_OAUTH_TOKEN"):
+            if "GH_OAUTH_TOKEN" in config:
                 headers['Authorization']="token %s" % (config["GH_OAUTH_TOKEN"])
                 frum_name = requests.get(payload['sender']['url'],
                                      headers=headers
@@ -489,13 +495,16 @@ def loadTemplates(name, rootpath, specificpath, optionalpath = ""):
         error = None
         template = None
         try:
-            template = io.open(rootpath + specificpath + optionalpath + "/%s%s" % (name, extension)).read()
+            with io.open(rootpath + specificpath + optionalpath + "/%s%s" % (name, extension)) as filehandle:
+                template = filehandle.read()
         except IOError:
             try:
-                template = io.open(rootpath + specificpath + "/%s%s" % (name,extension)).read()
+                with io.open(rootpath + specificpath + "/%s%s" % (name,extension)) as filehandle:
+                    template = filehandle.read()
             except IOError:
                 try:
-                    template = io.open(rootpath + "/generic/%s%s" % (name,extension)).read()
+                    with io.open(rootpath + "/generic/%s%s" % (name,extension)) as filehandle:
+                        template = filehandle.read()
                 except IOError:
                     error = {'msg': 'no template defined for event %s' % name}
         return template, error
@@ -530,9 +539,9 @@ def sendMail(smtp, parts, from_addr, from_name, to_addr, subject, msgid=None, in
             if part['subtype'] == 'plain':
                 alt.set_param('format', 'flowed')
             msg.attach(alt)
-    msg['From'] = formataddr((str(Header(from_name,'utf-8')),from_addr))
+    msg['From'] = formataddr((from_name, from_addr))
     msg['To'] = ",".join(to_addr)
-    msg['Subject'] = Header(subject, 'utf-8')
+    msg['Subject'] = Header(subject)
     if msgid:
         msg['Message-ID'] = msgid
     if inreplyto:
@@ -550,8 +559,8 @@ def sendMail(smtp, parts, from_addr, from_name, to_addr, subject, msgid=None, in
 
 if __name__ == "__main__":
     config = json.loads(io.open('instance/config.json').read())
-    if os.environ.has_key('SCRIPT_NAME'):
-        print serveRequest(config, sys.stdin.read())
+    if 'SCRIPT_NAME' in os.environ:
+        print(serveRequest(config, sys.stdin.read()))
     else:
         period = sys.argv[1] if len(sys.argv) > 1 else None
         sendDigest(config, period)

@@ -29,20 +29,26 @@ class SendEmailGithubTests(unittest.TestCase):
         responses.add(responses.GET, 'https://api.github.com/repos/foo/bar', status=404)
         responses.add(responses.GET, 'https://api.github.com/repos/foo/bar/events', status=404)
         responses.add(responses.GET, 'https://api.github.com/repos/w3c/webrtc-pc',
-                      body=io.open('tests/repo1-data.json').read(), content_type='application/json')
+                      body=self.read_file('tests/repo1-data.json'), content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/repos/w3c/webrtc-pc/events',
-                      body=io.open('tests/repo1-events-1.json').read(), content_type='application/json', adding_headers={'link':'<https://api.github.com/repos/w3c/webrtc-pc/events/2>;rel="next"'})
+                      body=self.read_file('tests/repo1-events-1.json'), content_type='application/json', adding_headers={'link':'<https://api.github.com/repos/w3c/webrtc-pc/events/2>;rel="next"'})
         responses.add(responses.GET, 'https://api.github.com/repos/w3c/webrtc-pc/events/2',
-                      body=io.open('tests/repo1-events-2.json').read(), content_type='application/json')
+                      body=self.read_file('tests/repo1-events-2.json'), content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/repos/w3c/webrtc-pc/issues/events',
-                      body=io.open('tests/repo1-issues.json').read(), content_type='application/json')
+                      body=self.read_file('tests/repo1-issues.json'), content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/repos/w3c/webcrypto',
-                      body=io.open('tests/repo2-data.json').read(), content_type='application/json')
+                      body=self.read_file('tests/repo2-data.json'), content_type='application/json')
         responses.add(responses.GET, 'https://api.github.com/repos/w3c/webcrypto/events',
-                      body=io.open('tests/repo2-events-1.json').read(), content_type='application/json')
+                      body=self.read_file('tests/repo2-events-1.json'), content_type='application/json')
 
     def parseReferenceMessage():
         return headers, body
+
+    @staticmethod
+    def read_file(filename):
+        with io.open(filename) as filehandle:
+            contents = filehandle.read()
+        return contents
 
     @responses.activate
     @patch("smtplib.SMTP")
@@ -63,19 +69,19 @@ class SendEmailGithubTests(unittest.TestCase):
         counter = 0
         import pprint
         for (name, args, kwargs) in instance.sendmail.mock_calls:
-            self.assertEqual(args[0], u"test@localhost")
+            self.assertEqual(args[0], "test@localhost")
             self.assertIn(args[1][0], refs[counter])
             sent_email = email.message_from_string(args[2])
             sent_parts = []
             ref_parts = []
-            ref_parts.append(io.open(refs[counter][args[1][0]]).read())
+            ref_parts.append(self.read_file(refs[counter][args[1][0]]))
             if sent_email.is_multipart():
                 sent_parts.append({'headers': sent_email.get_payload(0).as_string().split('\n\n')[0],
                                    'body': sent_email.get_payload(0).get_payload(decode=True).decode('utf-8')})
                 sent_parts.append({'headers': sent_email.get_payload(1).as_string().split('\n\n')[0],
                                  'body': sent_email.get_payload(1).get_payload(decode=True).decode('utf-8')})
                 if refs[counter].get("html", False):
-                    ref_parts.append(io.open(refs[counter][args[1][0]] + '.html').read())
+                    ref_parts.append(self.read_file(refs[counter][args[1][0]] + '.html'))
             else:
                 sent_parts.append({'headers': args[2].split("\n\n")[0],
                                  'body': sent_email.get_payload(decode=True).decode('utf-8')})
