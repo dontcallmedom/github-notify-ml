@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # started from
 # https://github.com/razius/flask-github-webhook/blob/master/index.py
 import io
