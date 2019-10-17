@@ -61,19 +61,7 @@ Only events for which templates have been defined (in the `templates/generic` di
 
 In addition to configuring targets of notifications, an instance of this webhook needs to define a `config.json` file with the SMTP host, the address from which messages will be sent, and set a GitHub OAUTH token that can be used to retrieve information via the GitHub API.
 
-## W3C instance
-W3C operates an instance of this service for WGs (and some CGs) repositories; if you want to make use of this service, please send pull requests on <a href="https://github.com/w3c/github-notify-ml-config">w3c/github-notify-ml-config</a> with amendments to the <code>mls.json</code> file for the mailing list(s) and repo(s) you’re interested in. 
-
-You will also need to add a webhook to https://services.w3.org/github-notify-ml/ in the target repository's settings. To do this:
-* in the repo for which notifications are being set, go to `Settings > Add webhook`
-* add https://services.w3.org/github-notify-ml/ where it says `Payload URL`
-* leave `Content-type` as application/json
-* ignore the box `Secret`
-* set radio to `Send me everything`
-* leave `Active` checked
-* and press `Add Webhook`
-
-If you want to use a different text in the notifications, you can also provide pull requests that bring special per mailing list templates as described above.
+See also [how to make use of the W3C instance of this service](https://github.com/w3c/github-notify-ml-config).
 
 ## Testing
 Run the test suite with:
