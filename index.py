@@ -732,14 +732,15 @@ def sendMail(
     m = StringIO()
     g = Generator(m, False)
     g.flatten(msg)
-    smtp = smtplib.SMTP
     if "SMTP_SSL" in config:
-        smtp = smtplib.SMTP_SSL
-    with smtp(config["SMTP_HOST"]) as server:
-        if "SMTP_USERNAME" in config:
-            server.login(config["SMTP_USERNAME"], config["SMTP_PASSWORD"])
-        server.sendmail(from_addr, to_addr, m.getvalue())
-        sentMail = {"to": to_addr, "subject": subject}
+        server = smtplib.SMTP_SSL(config["SMTP_HOST"])
+    else:
+        server = smtplib.SMTP(config["SMTP_HOST"])
+    if "SMTP_USERNAME" in config:
+        server.login(config["SMTP_USERNAME"], config["SMTP_PASSWORD"])
+    server.sendmail(from_addr, to_addr, m.getvalue())
+    sentMail = {"to": to_addr, "subject": subject}
+    server.quit()
     return sentMail
 
 
