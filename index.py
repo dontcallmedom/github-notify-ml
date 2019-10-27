@@ -388,7 +388,7 @@ def sendDigest(config, period="daily"):
                 parts, subject = mailFromTemplate(templates, events)
                 to = ml.split(",")
                 sendMail(
-                    config["SMTP_HOST"],
+                    config,
                     parts,
                     from_addr,
                     "W3C Webmaster via GitHub API",
@@ -447,14 +447,7 @@ def w3cRequest(config, postbody):
         from_addr = conf.get("email", {}).get("from", config["EMAIL_FROM"])
         parts, subject = mailFromTemplate(templates, payload["specversion"])
         sentMail.append(
-            sendMail(
-                config["SMTP_HOST"],
-                parts,
-                from_addr,
-                "W3C Webmaster via W3C API",
-                to,
-                subject,
-            )
+            sendMail(config, parts, from_addr, "W3C Webmaster via W3C API", to, subject)
         )
     return reportSentMail(sentMail, errors)
 
@@ -644,16 +637,7 @@ def githubRequest(config, postbody):
                     frum_name = payload["sender"]["login"]
                 frum_name = "%s via GitHub" % (frum_name)
             sentMail.append(
-                sendMail(
-                    config["SMTP_HOST"],
-                    parts,
-                    frum,
-                    frum_name,
-                    too,
-                    subject,
-                    msgid,
-                    inreplyto,
-                )
+                sendMail(config, parts, frum, frum_name, too, subject, msgid, inreplyto)
             )
     return reportSentMail(sentMail, errors)
 
@@ -724,9 +708,8 @@ def mailFromTemplate(templates, payload):
 
 
 def sendMail(
-    smtp, parts, from_addr, from_name, to_addr, subject, msgid=None, inreplyto=None
+    config, parts, from_addr, from_name, to_addr, subject, msgid=None, inreplyto=None
 ):
-    s = smtplib.SMTP(smtp)
     if len(parts) == 1:
         msg = MIMEText(parts[0]["body"], _charset="utf-8")
         msg.set_param("format", "flowed")
@@ -749,15 +732,35 @@ def sendMail(
     m = StringIO()
     g = Generator(m, False)
     g.flatten(msg)
-    s.sendmail(from_addr, to_addr, m.getvalue())
+    if "SMTP_SSL" in config:
+        server = smtplib.SMTP_SSL(config["SMTP_HOST"])
+    else:
+        server = smtplib.SMTP(config["SMTP_HOST"])
+    if "SMTP_USERNAME" in config:
+        server.login(config["SMTP_USERNAME"], config["SMTP_PASSWORD"])
+    server.sendmail(from_addr, to_addr, m.getvalue())
     sentMail = {"to": to_addr, "subject": subject}
-
-    s.quit()
+    server.quit()
     return sentMail
 
 
-if __name__ == "__main__":
+def getConfig():
     config = json.loads(io.open("instance/config.json").read())
+    for K in [
+        "GH_OAUTH_TOKEN",
+        "SMTP_SSL",
+        "SMTP_HOST",
+        "EMAIL_FROM",
+        "SMTP_USERNAME",
+        "SMTP_PASSWORD",
+    ]:
+        if K in os.environ:
+            config[K] = os.environ[K]
+    return config
+
+
+if __name__ == "__main__":
+    config = getConfig()
     if "SCRIPT_NAME" in os.environ:
         print(serveRequest(config, sys.stdin.read()))
     else:
