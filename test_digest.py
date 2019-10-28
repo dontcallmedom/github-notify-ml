@@ -15,7 +15,7 @@ config = {
     "SMTP_HOST": "localhost",
     "EMAIL_FROM": "test@localhost",
     "TEMPLATES_DIR": "tests/templates",
-    "DIGEST_SUBJECT":"W3C Webmaster via GitHub API",
+    "DIGEST_SENDER":"W3C Webmaster via GitHub API",
     "GH_OAUTH_TOKEN": "foo",
     "mls": "tests/mls.json",
 }

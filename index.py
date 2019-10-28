@@ -391,7 +391,7 @@ def sendDigest(config, period="daily"):
                     config,
                     parts,
                     from_addr,
-                    config["DIGEST_SUBJECT"],
+                    config["DIGEST_SENDER"],
                     to,
                     subject,
                 )
