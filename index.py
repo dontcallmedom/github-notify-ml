@@ -391,7 +391,7 @@ def sendDigest(config, period="daily"):
                     config,
                     parts,
                     from_addr,
-                    "W3C Webmaster via GitHub API",
+                    config["DIGEST_SENDER"],
                     to,
                     subject,
                 )
