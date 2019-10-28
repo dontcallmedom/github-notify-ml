@@ -1,6 +1,7 @@
 {
 "SMTP_HOST":"localhost",
 "EMAIL_FROM":"test@localhost",
+"DIGEST_SUBJECT":"W3C Webmaster via GitHub API",
 "TEMPLATES_DIR":"templates",
 "GH_OAUTH_TOKEN":""
 }
