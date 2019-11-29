@@ -27,6 +27,9 @@ The set of mailing lists, repos / TR documents and events is configured in a JSO
        "repos": ["githubaccount/repo", "githubaccount/repo2"]
      },
      {
+       "repoList": "https://example.org/repos.json"
+     },
+     {
        "topic": "All of repo4 and some of repo3", 
        "sources": [
            {
@@ -54,26 +57,14 @@ In other words:
 * digests are identified by their key (of the form "digest:monday" (or any other day of the week), or "digest:daily" depending on the periodicity); each item in the said list describes a digest to be sent on that day to that list. A single digest is described by an object consisting of 
   * an optional "topic" (which will be included in the subject of the digest)
   * either:
-    * a "repos" field with an array of repository full names (e.g. `w3c/webrtc-pc`), and optionally an "eventFilter" field (which, as above, has `label` and `notlabel` as possible filters at the moment) that applies to all the said repos
+    * a "repos" field with an array of repository full names (e.g. `w3c/webrtc-pc`) OR a "repoList" field with an URL pointing a JSON area of repository fullnames, and optionally an "eventFilter" field (which, as above, has `label` and `notlabel` as possible filters at the moment) that applies to all the said repos
     * a "sources" field, which describes an array of dictionaries as described above. This allows to create a single digest that combines filtered events from some repos, and unfiltered (or with different filters) events from other repos
 
 Only events for which templates have been defined (in the `templates/generic` directory) will be notified. Each mail target can have customized templates by creating an `email@example.com` directory in `templates/mls` and having a file named after the event. Templates use Mustache-based pystache as their engines and are fed with payload data from the event. The first line of the template is used as the subject of the email.
 
 In addition to configuring targets of notifications, an instance of this webhook needs to define a `config.json` file with the SMTP host, the address from which messages will be sent, and set a GitHub OAUTH token that can be used to retrieve information via the GitHub API.
 
-## W3C instance
-W3C operates an instance of this service for WGs (and some CGs) repositories; if you want to make use of this service, please send pull requests on <a href="https://github.com/w3c/github-notify-ml-config">w3c/github-notify-ml-config</a> with amendments to the <code>mls.json</code> file for the mailing list(s) and repo(s) you’re interested in. 
-
-You will also need to add a webhook to https://services.w3.org/github-notify-ml/ in the target repository's settings. To do this:
-* in the repo for which notifications are being set, go to `Settings > Add webhook`
-* add https://services.w3.org/github-notify-ml/ where it says `Payload URL`
-* leave `Content-type` as application/json
-* ignore the box `Secret`
-* set radio to `Send me everything`
-* leave `Active` checked
-* and press `Add Webhook`
-
-If you want to use a different text in the notifications, you can also provide pull requests that bring special per mailing list templates as described above.
+See also [how to make use of the W3C instance of this service](https://github.com/w3c/github-notify-ml-config).
 
 ## Testing
 Run the test suite with:

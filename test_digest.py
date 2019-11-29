@@ -73,6 +73,12 @@ class SendEmailGithubTests(unittest.TestCase):
             body=self.read_file("tests/repo2-events-1.json"),
             content_type="application/json",
         )
+        responses.add(
+            responses.GET,
+            "https://w3c.github.io/validate-repos/rec-track-repos.json",
+            body=self.read_file("tests/rec-repos.json"),
+            content_type="application/json",
+        )
 
     def parseReferenceMessage():
         return headers, body
@@ -89,6 +95,7 @@ class SendEmailGithubTests(unittest.TestCase):
         self.do_digest(
             "Wednesday",
             [
+                {"dom@localhost": "tests/digest-weekly-allrepos.msg"},
                 {"dom@localhost": "tests/digest-weekly.msg"},
                 {"dom@localhost": "tests/digest-weekly-filtered.msg", "html": True},
                 {"dom@localhost": "tests/digest-weekly-repofiltered.msg"},
