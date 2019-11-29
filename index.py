@@ -9,6 +9,7 @@ import json
 import re
 import subprocess
 import requests
+import requests_cache
 import ipaddress
 import smtplib
 from email.mime.text import MIMEText
@@ -22,6 +23,8 @@ from functools import reduce
 
 email.charset.add_charset("utf-8", email.charset.QP, email.charset.QP, "utf-8")
 
+# avoid re-requesting the same content in a given run
+requests_cache.install_cache(backend='memory')
 
 class InvalidConfiguration(Exception):
     pass
