@@ -47,7 +47,13 @@
           "site_admin": false
         },
         "labels": [
-
+          {
+            "id": 381297687,
+            "url": "https://api.github.com/repos/w3c/webcrypto/labels/editorial",
+            "name": "editorial",
+            "color": "d93f0b",
+            "default": false
+          }
         ],
         "state": "open",
         "locked": false,

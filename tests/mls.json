@@ -27,6 +27,11 @@
         },
         "digest:wednesday": [
             {
+                "repoList": "https://w3c.github.io/validate-repos/rec-track-repos.json",
+                "eventFilter": {"label": ["editorial"]},
+                "topic": "Editorial issues across all repos"
+            },
+            {
                 "repos": ["w3c/webrtc-pc", "foo/bar"]
             },
             {
