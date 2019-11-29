@@ -102,6 +102,8 @@ class SendEmailGithubTests(unittest.TestCase):
             ],
             mock_smtp,
         )
+        self.assertEqual(len(responses.calls), 6)
+
 
     @responses.activate
     @patch("smtplib.SMTP")
@@ -109,6 +111,7 @@ class SendEmailGithubTests(unittest.TestCase):
         self.do_digest(
             "quarterly", [{"dom@localhost": "tests/summary-quarterly.msg"}], mock_smtp
         )
+        self.assertEqual(len(responses.calls), 2)
 
     def do_digest(self, period, refs, mock_smtp):
         import email
@@ -166,7 +169,6 @@ class SendEmailGithubTests(unittest.TestCase):
                 ref_body = "\n".join(ref_part.split("\n\n")[1:])
                 self.assertMultiLineEqual(sent_part["body"], ref_body)
             counter = counter + 1
-
 
 if __name__ == "__main__":
     unittest.main()
