@@ -262,6 +262,13 @@ def extractDigestInfo(events, eventFilter=None):
     )
     return data
 
+def getRepoList(source):
+    if ("repos" in source):
+        return source["repos"]
+    if ("repoList" in source):
+        return requests.get(source["repoList"]).json()
+    # TODO: report error somehow?
+    return []
 
 def sendDigest(config, period="daily"):
     from datetime import datetime, timedelta
@@ -319,11 +326,12 @@ def sendDigest(config, period="daily"):
             # cf https://github.com/dontcallmedom/github-notify-ml/issues/43
             # For the latter case, we enable an optional array "sources"
             # which lists repos/eventFilter dictionaries
+            # TODO make repoList work with sources too
             sources = d.get(
                 "sources",
                 [
                     {
-                        "repos": d.get("repos", []),
+                        "repos": getRepoList(d),
                         "eventFilter": d.get("eventFilter", None),
                     }
                 ],
