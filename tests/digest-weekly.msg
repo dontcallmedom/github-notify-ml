@@ -19,7 +19,7 @@ Issues
   - Effect of sender.replaceTrack(null) (by aboba)
     https://github.com/w3c/webrtc-pc/issues/943 
   - Meta: auto-publish changes to the spec (by foolip)
-    https://github.com/w3c/webrtc-pc/issues/942 
+    https://github.com/w3c/webrtc-pc/issues/942 [editorial] 
   - STUN/TURN Auto Discovery handling (by misi)
     https://github.com/w3c/webrtc-pc/issues/941 
 
