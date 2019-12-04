@@ -265,13 +265,25 @@ def extractDigestInfo(events, eventFilter=None):
     )
     return data
 
+# this preserves order which list(set()) wouldn't
+def uniq(seq):
+    seen = set()
+    seen_add = seen.add
+    return [x for x in seq if not (x in seen or seen_add(x))]
+
 def getRepoList(source):
+    repos = []
     if ("repos" in source):
-        return source["repos"]
+        repos = source["repos"]
     if ("repoList" in source):
-        return requests.get(source["repoList"]).json()
-    # TODO: report error somehow?
-    return []
+        try:
+            repolist = requests.get(source["repoList"]).json()
+            # ensure unicity
+            repos = uniq(repos + repolist)
+        except:
+            pass
+            # TODO: report error somehow?
+    return repos
 
 def sendDigest(config, period="daily"):
     from datetime import datetime, timedelta
