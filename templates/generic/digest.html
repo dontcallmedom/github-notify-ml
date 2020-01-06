@@ -92,11 +92,13 @@ li { margin-bottom: .35em; }
 {{/activeprrepos}}
 {{/activeprs}}
 
-<h2>Repositories tracked by this digest:</h2>
+  <details>
+    <summary>Repositories tracked by this digest:</summary>
 <ul class="repos">
 {{#repos}}
   <li><a href="{{url}}">{{url}}</a></li>
 {{/repos}}
-  </ul>
+</ul>
+</details>
 </body>
 </html>
