@@ -22,6 +22,9 @@
         "regexp:Codertocat/.*": {
             "events": ["repository.created", "repository.deleted"]
         },
+        "regexp:w3c/.*": {
+            "events": ["repository.transferred"]
+        },
         "w3c/webrtc-pc": {
             "events": ["pull_request.closed"]
         },
