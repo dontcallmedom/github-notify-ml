@@ -91,6 +91,8 @@ def event_timestamp(event, payload):
         ts = payload["comment"]["created_at"]
     elif event == "repository.created":
         ts = payload["repository"]["created_at"]
+    elif event == "repository.transferred":
+        ts = datetime.now().isoformat(timespec='seconds')
     elif event.split(".")[0] in ["issues", "pull_request"]:
         action = event.split(".")[1]
         key = (
