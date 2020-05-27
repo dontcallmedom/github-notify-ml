@@ -92,6 +92,15 @@ class SendEmailGithubTests(unittest.TestCase):
         )
 
     @patch("smtplib.SMTP")
+    def test_repo_transferred_notif(self, mock_smtp):
+        self.do_gh_operation(
+            "repository",
+            "tests/repo-transferred.json",
+            {"dom@localhost": "tests/repo-transferred.msg"},
+            mock_smtp,
+        )
+
+    @patch("smtplib.SMTP")
     def test_repo_deleted_notif(self, mock_smtp):
         self.do_gh_operation(
             "repository",
