@@ -587,6 +587,10 @@ def githubRequest(config, postbody):
     if "action" in payload:
         event = event + "." + payload["action"]
 
+    # Harmonizing how the source of a repo transfer is represtend across orgs /users
+    if event == "repository.transferred":
+        payload["from"] = list(payload["changes"]["owner"]["from"].values())[0]["login"]
+
     for ml, repos in mls.items():
         for reponame in filter(repoMatch, list(repos.keys())):
             tr_prefix = "http://www.w3.org/TR/"
