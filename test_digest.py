@@ -18,6 +18,7 @@ config = {
     "DIGEST_SENDER":"W3C Webmaster via GitHub API",
     "GH_OAUTH_TOKEN": "foo",
     "mls": "tests/mls.json",
+    "SIGNATURE": "Sent with ♥"
 }
 
 
