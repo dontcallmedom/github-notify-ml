@@ -408,7 +408,7 @@ def sendDigest(config, period="daily"):
                         "No template for %s digest targeted at %s" % (duration, ml)
                     )
                 from_addr = config.get("email", {}).get("from", config["EMAIL_FROM"])
-                parts, subject = mailFromTemplate(templates, events)
+                parts, subject = mailFromTemplate(templates, events, config.get("SIGNATURE"))
                 to = ml.split(",")
                 sendMail(
                     config,
@@ -468,7 +468,7 @@ def w3cRequest(config, postbody):
             errors.append(error)
             continue
         from_addr = conf.get("email", {}).get("from", config["EMAIL_FROM"])
-        parts, subject = mailFromTemplate(templates, payload["specversion"])
+        parts, subject = mailFromTemplate(templates, payload["specversion"], config.get("SIGNATURE"))
         sentMail.append(
             sendMail(config, parts, from_addr, "W3C Webmaster via W3C API", to, subject)
         )
@@ -625,7 +625,7 @@ def githubRequest(config, postbody):
             if not len(templates):
                 errors.append(error)
                 continue
-            parts, subject = mailFromTemplate(templates, payload)
+            parts, subject = mailFromTemplate(templates, payload, config.get("SIGNATURE"))
             frum = repo.get("email", {}).get("from", config["EMAIL_FROM"])
             msgid = "<%s-%s-%s-%s>" % (
                 event,
@@ -721,15 +721,18 @@ def loadTemplates(name, rootpath, specificpath, optionalpath=""):
     return templates, error
 
 
-def mailFromTemplate(templates, payload):
+def mailFromTemplate(templates, payload, signature):
     import pystache
 
     parts = []
     formats = ["plain", "html"]
+    payload["signature"] = signature
     for template, subtype in zip(templates, formats):
         body = pystache.render(template, payload)
         if subtype == "plain":
             subject, dummy, body = body.partition("\n")
+            if signature:
+                body = body + "\n\n-- \n%s\n" % signature
         parts.append({"body": body, "subtype": subtype})
     return parts, subject
 
