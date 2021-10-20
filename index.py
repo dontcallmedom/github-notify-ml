@@ -102,7 +102,7 @@ def event_timestamp(event, payload):
             ts = payload[key]["created_at"]
         elif action == "closed":
             ts = payload[key]["closed_at"]
-        elif action == "reopened" or action == "synchronize":
+        elif action == "reopened" or action == "synchronize" or action == "labeled":
             ts = payload[key]["updated_at"]
     if ts:
         return timestamp(ts)
