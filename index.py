@@ -761,9 +761,9 @@ def sendMail(
     m = StringIO()
     g = Generator(m, False)
     g.flatten(msg)
-    return _sendMail(config, from_addr, to_addr, m.getvalue())
+    return _sendMail(config, from_addr, to_addr, subject, m.getvalue())
 
-def _sendMail(config, from_addr, to_addr, message):
+def _sendMail(config, from_addr, to_addr, subject, message):
     if "SMTP_SSL" in config:
         smtp = smtplib.SMTP_SSL
     else:
