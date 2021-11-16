@@ -1,3 +1,4 @@
+# coding=utf-8
 from mock import patch, call
 import unittest
 import responses
@@ -103,8 +104,7 @@ class SendEmailGithubTests(unittest.TestCase):
             ],
             mock_smtp,
         )
-        self.assertEqual(len(responses.calls), 6)
-
+        self.assertEqual(len(responses.calls), 19)
 
     @responses.activate
     @patch("smtplib.SMTP")
