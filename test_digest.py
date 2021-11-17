@@ -92,7 +92,7 @@ class SendEmailGithubTests(unittest.TestCase):
         return contents
 
     @responses.activate
-    @patch("smtplib.SMTP")
+    @patch("smtplib.SMTP", autospec=True)
     def test_weekly_digest(self, mock_smtp):
         self.do_digest(
             "Wednesday",
@@ -102,28 +102,28 @@ class SendEmailGithubTests(unittest.TestCase):
                 {"dom@localhost": "tests/digest-weekly-filtered.msg", "html": True},
                 {"dom@localhost": "tests/digest-weekly-repofiltered.msg"},
             ],
-            mock_smtp,
+            mock_smtp.return_value.__enter__.return_value.sendmail,
         )
         self.assertEqual(len(responses.calls), 19)
 
     @responses.activate
-    @patch("smtplib.SMTP")
+    @patch("smtplib.SMTP", autospec=True)
     def test_quarterly_summary(self, mock_smtp):
         self.do_digest(
-            "quarterly", [{"dom@localhost": "tests/summary-quarterly.msg"}], mock_smtp
+            "quarterly", [{"dom@localhost": "tests/summary-quarterly.msg"}], mock_smtp.return_value.__enter__.return_value.sendmail
         )
         self.assertEqual(len(responses.calls), 2)
 
     def do_digest(self, period, refs, mock_smtp):
         import email
 
-        instance = mock_smtp.return_value
         sendDigest(config, period)
-        self.assertEqual(instance.sendmail.call_count, len(refs))
+        self.assertEqual(mock_smtp.call_count, len(refs))
         counter = 0
         import pprint
-
-        for (name, args, kwargs) in instance.sendmail.mock_calls:
+        #pprint.pprint(mock_smtp.mock_calls)
+        for (name, args, kwargs) in mock_smtp.mock_calls:
+            #pprint(args)
             self.assertEqual(args[0], "test@localhost")
             self.assertIn(args[1][0], refs[counter])
             sent_email = email.message_from_string(args[2])

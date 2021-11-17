@@ -42,7 +42,7 @@ class SendEmailGithubTests(unittest.TestCase):
         )
         assert rv.status_code == 403
 
-    @patch("smtplib.SMTP")
+    @patch("smtplib.SMTP", autospec=True)
     def test_w3c_tr_published(self, mock_smtp):
         data = self.read_file("tests/trpublished-notif.json")
         rv = requests.post(
@@ -51,8 +51,7 @@ class SendEmailGithubTests(unittest.TestCase):
             data=data,
         )
         refs = {"dom@localhost": "tests/trpublished-notif.msg"}
-        instance = mock_smtp.return_value
-        self.assert_operation_results(rv, instance, refs)
+        self.assert_operation_results(rv, mock_smtp.return_value.__enter__.return_value.sendmail, refs)
 
     def do_gh_operation(self, operation, jsonf, refs, mock_smtp):
         with io.open(jsonf) as filehandle:
@@ -60,14 +59,13 @@ class SendEmailGithubTests(unittest.TestCase):
         rv = requests.post(
             "http://localhost:8000/", headers={"X-GitHub-Event": operation}, data=data
         )
-        instance = mock_smtp.return_value
-        self.assert_operation_results(rv, instance, refs)
+        self.assert_operation_results(rv, mock_smtp.return_value.__enter__.return_value.sendmail, refs)
 
     def assert_operation_results(self, rv, instance, refs):
         self.assertEqual(rv.status_code, 200)
-        self.assertEqual(instance.sendmail.call_count, len(refs))
+        self.assertEqual(instance.call_count, len(refs))
         i = 0
-        for (name, args, kwargs) in instance.sendmail.mock_calls:
+        for (name, args, kwargs) in instance.mock_calls:
             self.assertEqual(args[0], "test@localhost")
             self.assertIn(args[1][0], refs)
             msg = self.read_file(refs[args[1][0]])
@@ -82,7 +80,7 @@ class SendEmailGithubTests(unittest.TestCase):
             self.assertMultiLineEqual(sent_headers, ref_headers)
             self.assertMultiLineEqual(sent_body, ref_body)
 
-    @patch("smtplib.SMTP")
+    @patch("smtplib.SMTP", autospec=True)
     def test_repo_created_notif(self, mock_smtp):
         self.do_gh_operation(
             "repository",
@@ -91,7 +89,7 @@ class SendEmailGithubTests(unittest.TestCase):
             mock_smtp,
         )
 
-    @patch("smtplib.SMTP")
+    @patch("smtplib.SMTP", autospec=True)
     def test_repo_transferred_notif(self, mock_smtp):
         self.do_gh_operation(
             "repository",
@@ -100,7 +98,7 @@ class SendEmailGithubTests(unittest.TestCase):
             mock_smtp,
         )
 
-    @patch("smtplib.SMTP")
+    @patch("smtplib.SMTP", autospec=True)
     def test_repo_deleted_notif(self, mock_smtp):
         self.do_gh_operation(
             "repository",
@@ -109,7 +107,7 @@ class SendEmailGithubTests(unittest.TestCase):
             mock_smtp,
         )
 
-    @patch("smtplib.SMTP")
+    @patch("smtplib.SMTP", autospec=True)
     def test_push_notif(self, mock_smtp):
         self.do_gh_operation(
             "push",
@@ -118,7 +116,7 @@ class SendEmailGithubTests(unittest.TestCase):
             mock_smtp,
         )
 
-    @patch("smtplib.SMTP")
+    @patch("smtplib.SMTP", autospec=True)
     def test_issue_notif(self, mock_smtp):
         self.do_gh_operation(
             "issues",
@@ -130,7 +128,7 @@ class SendEmailGithubTests(unittest.TestCase):
             mock_smtp,
         )
 
-    @patch("smtplib.SMTP")
+    @patch("smtplib.SMTP", autospec=True)
     def test_issue_comment_notif(self, mock_smtp):
         self.do_gh_operation(
             "issue_comment",
@@ -139,7 +137,7 @@ class SendEmailGithubTests(unittest.TestCase):
             mock_smtp,
         )
 
-    @patch("smtplib.SMTP")
+    @patch("smtplib.SMTP", autospec=True)
     def test_pull_request_comment_notif(self, mock_smtp):
         self.do_gh_operation(
             "issue_comment",
@@ -148,7 +146,7 @@ class SendEmailGithubTests(unittest.TestCase):
             mock_smtp,
         )
 
-    @patch("smtplib.SMTP")
+    @patch("smtplib.SMTP", autospec=True)
     def test_pull_notif(self, mock_smtp):
         self.do_gh_operation(
             "pull_request",
@@ -157,7 +155,7 @@ class SendEmailGithubTests(unittest.TestCase):
             mock_smtp,
         )
 
-    @patch("smtplib.SMTP")
+    @patch("smtplib.SMTP", autospec=True)
     def test_pull_closed_notif(self, mock_smtp):
         self.do_gh_operation(
             "pull_request",
@@ -166,7 +164,7 @@ class SendEmailGithubTests(unittest.TestCase):
             mock_smtp,
         )
 
-    @patch("smtplib.SMTP")
+    @patch("smtplib.SMTP", autospec=True)
     def test_pull_labeled_notif(self, mock_smtp):
         self.do_gh_operation(
             "pull_request",
@@ -175,7 +173,7 @@ class SendEmailGithubTests(unittest.TestCase):
             mock_smtp,
         )
 
-    @patch("smtplib.SMTP")
+    @patch("smtplib.SMTP", autospec=True)
     def test_unavailable_template(self, mock_smtp):
         data = self.read_file("tests/push-notif.json")
         rv = requests.post(
@@ -183,7 +181,7 @@ class SendEmailGithubTests(unittest.TestCase):
         )
         instance = mock_smtp.return_value
         self.assertEqual(rv.status_code, 500)
-        self.assertEqual(instance.sendmail.call_count, 0)
+        self.assertEqual(instance.call_count, 0)
 
     def tearDown(self):
         self.t.terminate()

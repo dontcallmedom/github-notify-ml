@@ -736,7 +736,6 @@ def mailFromTemplate(templates, payload, signature):
         parts.append({"body": body, "subtype": subtype})
     return parts, subject
 
-
 def sendMail(
     config, parts, from_addr, from_name, to_addr, subject, msgid=None, inreplyto=None
 ):
@@ -762,17 +761,37 @@ def sendMail(
     m = StringIO()
     g = Generator(m, False)
     g.flatten(msg)
-    if "SMTP_SSL" in config:
-        server = smtplib.SMTP_SSL(config["SMTP_HOST"])
-    else:
-        server = smtplib.SMTP(config["SMTP_HOST"])
-    if "SMTP_USERNAME" in config:
-        server.login(config["SMTP_USERNAME"], config["SMTP_PASSWORD"])
-    server.sendmail(from_addr, to_addr, m.getvalue())
-    sentMail = {"to": to_addr, "subject": subject}
-    server.quit()
-    return sentMail
+    return _sendMail(config, from_addr, to_addr, subject, m.getvalue())
 
+def _sendMail(config, from_addr, to_addr, subject, message):
+    if "SMTP_SSL" in config:
+        smtp = smtplib.SMTP_SSL
+    else:
+        smtp = smtplib.SMTP
+    timeout = config.get("SMTP_TIMEOUT", 30)
+    try:
+        with smtp(config["SMTP_HOST"], timeout=timeout) as server:
+            if "SMTP_USERNAME" in config:
+                try:
+                    server.login(config["SMTP_USERNAME"], config["SMTP_PASSWORD"])
+                except smtplib.SMTPException as why:
+                    warn(f"SMTP login failure - {why}")
+                    return {}
+            try:
+                result = server.sendmail(from_addr, to_addr, message)
+            except smtplib.SMTPException as why:
+                warn(f"SMTP sendmail error: {why}")
+                return {}
+    except smtplib.SMTPConnectError as why:
+        warn(f"SMTP connect error: {why}")
+        return {}
+    except TimeoutError:
+        warn(f"SMTP timeout ({timeout}s)")
+        return {}
+    return {"to": to_addr, "subject": subject}
+
+def warn(message):
+    sys.stderr.write(f"WARNING: {message}\n")
 
 def getConfig():
     config = json.loads(io.open("instance/config.json").read())
@@ -783,6 +802,7 @@ def getConfig():
         "EMAIL_FROM",
         "SMTP_USERNAME",
         "SMTP_PASSWORD",
+        "SMTP_TIMEOUT",
     ]:
         if K in os.environ:
             config[K] = os.environ[K]
