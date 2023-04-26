@@ -303,6 +303,9 @@ def sendDigest(config, period="daily"):
     elif period.lower() == "quarterly":
         until = datetime.now() - timedelta(92)
         duration = "quarterly"
+    elif period.lower() == "monthly":
+        until = datetime.now() - timedelta(31)
+        duration = "monthly"
     else:
         until = datetime.now() - timedelta(1)
         duration = period
