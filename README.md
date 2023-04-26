@@ -54,7 +54,7 @@ In other words:
   * `eventFilter` is an optional set of filters that are applied to the events above; at the moment, `label` and `notlabel` filters are defined, which means that only events that are associated with one of the said labels (defined as an array) will be notified (resp. only events that aren't associated with any of the labels)
   * `branches` allows to describe events that are applicable at the branch level rather than the whole repo (e.g. "push")
 * TR draft objects only take an `events` field, with `"tr.published"` currently the only supported event.
-* digests are identified by their key (of the form "digest:monday" (or any other day of the week), or "digest:daily" depending on the periodicity); each item in the said list describes a digest to be sent on that day to that list. A single digest is described by an object consisting of 
+* digests are identified by their key (of the form "digest:monday" (or any other day of the week), or "digest:daily", "digest:monthly", "digest:quarteryly" depending on the periodicity); each item in the said list describes a digest to be sent on that day to that list. A single digest is described by an object consisting of 
   * an optional "topic" (which will be included in the subject of the digest)
   * either:
     * a "repos" field with an array of repository full names (e.g. `w3c/webrtc-pc`) and/or a "repoList" field with an URL pointing a JSON area of repository fullnames (which gets combined with the list in `repos` if it is fetched successfully), and optionally an "eventFilter" field (which, as above, has `label` and `notlabel` as possible filters at the moment) that applies to all the said repos
