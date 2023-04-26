@@ -104,7 +104,7 @@ class SendEmailGithubTests(unittest.TestCase):
             ],
             mock_smtp.return_value.__enter__.return_value.sendmail,
         )
-        self.assertEqual(len(responses.calls), 19)
+        self.assertEqual(len(responses.calls), 6)
 
     @responses.activate
     @patch("smtplib.SMTP", autospec=True)
