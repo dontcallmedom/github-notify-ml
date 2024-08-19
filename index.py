@@ -67,7 +67,7 @@ def event_id(event, payload):
     elif event.split(".")[0] == "issue_comment":
         return payload["comment"]["id"]
     elif event == "push":
-        return payload["head_commit"]["id"]
+        return payload["after"]
     elif event.split(".")[0] == "pull_request":
         return payload["pull_request"]["id"]
     elif event.split(".")[0] == "repository":
