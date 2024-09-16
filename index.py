@@ -275,6 +275,15 @@ def getRepoList(source):
     repos = []
     if ("repos" in source):
         repos = source["repos"]
+    if ("allRepos" in source):
+        try:
+            url = "https://github.com/" + source["allRepos"] + "/repos"
+            repolist = requests.get(url).json()
+            repolist = [x.name for x in repolist]
+            repos = uniq(repos + repolist)
+        except pass:
+            # TODO: Bad URL, report error?
+
     if ("repoList" in source):
         try:
             repolist = requests.get(source["repoList"]).json()
