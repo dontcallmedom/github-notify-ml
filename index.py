@@ -776,10 +776,10 @@ def _sendMail(config, from_addr, to_addr, subject, message):
     try:
         with smtp(config["SMTP_HOST"], port=config["SMTP_PORT"], timeout=timeout) as server:
             if "SMTP_TLS" in config:
-                connection.ehlo()
+                server.ehlo()
                 context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-                connection.starttls(context=context)
-                connection.ehlo()
+                server.starttls(context=context)
+                server.ehlo()
             if "SMTP_USERNAME" in config:
                 try:
                     server.login(config["SMTP_USERNAME"], config["SMTP_PASSWORD"])
