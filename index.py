@@ -12,6 +12,7 @@ import requests
 import requests_cache
 import ipaddress
 import smtplib
+import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
@@ -773,7 +774,12 @@ def _sendMail(config, from_addr, to_addr, subject, message):
         smtp = smtplib.SMTP
     timeout = config.get("SMTP_TIMEOUT", 30)
     try:
-        with smtp(config["SMTP_HOST"], timeout=timeout) as server:
+        with smtp(config["SMTP_HOST"], port=config["SMTP_PORT"], timeout=timeout) as server:
+            if "SMTP_TLS" in config:
+                server.ehlo()
+                context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+                server.starttls(context=context)
+                server.ehlo()
             if "SMTP_USERNAME" in config:
                 try:
                     server.login(config["SMTP_USERNAME"], config["SMTP_PASSWORD"])
@@ -801,11 +807,13 @@ def getConfig():
     for K in [
         "GH_OAUTH_TOKEN",
         "SMTP_SSL",
+        "SMTP_TLS",
         "SMTP_HOST",
         "EMAIL_FROM",
         "SMTP_USERNAME",
         "SMTP_PASSWORD",
         "SMTP_TIMEOUT",
+        "SMTP_PORT",
     ]:
         if K in os.environ:
             config[K] = os.environ[K]
