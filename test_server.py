@@ -8,6 +8,7 @@ import sys
 
 config = {
     "SMTP_HOST": "localhost",
+    "SMTP_PORT": "8080",
     "EMAIL_FROM": "test@localhost",
     "TEMPLATES_DIR": "tests/templates",
     "GH_OAUTH_TOKEN": "foo",
