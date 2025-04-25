@@ -1,5 +1,6 @@
 from mock import patch, call
 import email
+import email.utils
 import unittest
 import smtplib
 import json
@@ -42,8 +43,9 @@ class SendEmailGithubTests(unittest.TestCase):
         )
         assert rv.status_code == 403
 
+    @patch("index.make_msgid", return_value="<test@example.com>")
     @patch("smtplib.SMTP", autospec=True)
-    def test_w3c_tr_published(self, mock_smtp):
+    def test_w3c_tr_published(self, mock_smtp, mock_make_msgid):
         data = self.read_file("tests/trpublished-notif.json")
         rv = requests.post(
             "http://localhost:8000/",

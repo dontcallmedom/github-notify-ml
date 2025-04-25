@@ -14,6 +14,7 @@ from index import sendDigest
 
 config = {
     "SMTP_HOST": "localhost",
+    "SMTP_PORT": "8080",
     "EMAIL_FROM": "test@localhost",
     "TEMPLATES_DIR": "tests/templates",
     "DIGEST_SENDER":"W3C Webmaster via GitHub API",

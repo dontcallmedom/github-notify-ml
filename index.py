@@ -16,7 +16,7 @@ import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
-from email.utils import formataddr
+from email.utils import formataddr, make_msgid
 from email.generator import Generator
 import email.charset
 from io import StringIO
@@ -756,8 +756,10 @@ def sendMail(
     msg["From"] = formataddr((from_name, from_addr))
     msg["To"] = ",".join(to_addr)
     msg["Subject"] = Header(subject)
-    if msgid:
-        msg["Message-ID"] = msgid
+    if not msgid:
+        msgid = make_msgid()
+    msg["Message-ID"] = msgid
+
     if inreplyto:
         msg["In-Reply-To"] = inreplyto
 
