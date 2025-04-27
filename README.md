@@ -42,6 +42,16 @@ The set of mailing lists, repos / TR documents and events is configured in a JSO
          ]
      }
    ]
+  },
+  "email4@example.com": {
+    "digest:tuesday": [
+     {
+       "allRepos": "users/githubaccount"
+     }
+     {
+       "allRepos": "orgs/orgname"
+     }
+   ]
   }
 }
 ```
