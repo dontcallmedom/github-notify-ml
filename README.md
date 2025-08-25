@@ -68,6 +68,7 @@ In other words:
   * an optional "topic" (which will be included in the subject of the digest)
   * either:
     * a "repos" field with an array of repository full names (e.g. `w3c/webrtc-pc`) and/or a "repoList" field with an URL pointing a JSON area of repository fullnames (which gets combined with the list in `repos` if it is fetched successfully), and optionally an "eventFilter" field (which, as above, has `label` and `notlabel` as possible filters at the moment) that applies to all the said repos
+    * the "allRepos" field may be used instead of "repos" or "repoList" to indicate that all the repositories in the organization should be included.
     * a "sources" field, which describes an array of dictionaries as described above. This allows to create a single digest that combines filtered events from some repos, and unfiltered (or with different filters) events from other repos
 
 Only events for which templates have been defined (in the `templates/generic` directory) will be notified. Each mail target can have customized templates by creating an `email@example.com` directory in `templates/mls` and having a file named after the event. Templates use Mustache-based pystache as their engines and are fed with payload data from the event. The first line of the template is used as the subject of the email.
