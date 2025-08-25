@@ -282,8 +282,9 @@ def getRepoList(source):
             repolist = requests.get(url).json()
             repolist = [x.name for x in repolist]
             repos = uniq(repos + repolist)
-        except pass:
+        except:
             # TODO: Bad URL, report error?
+            pass
 
     if ("repoList" in source):
         try:
