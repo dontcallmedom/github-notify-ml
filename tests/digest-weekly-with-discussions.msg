@@ -4,8 +4,7 @@ Content-Type: text/plain; charset="utf-8"; format="flowed"
 
 
 
-Errors while compiling the digest:
- - Repo foo/bar/events yields 404 error
+
 
 
 Issues
@@ -92,13 +91,28 @@ Pull requests
 
 
 
+Discussions
+-----------
+* w3c/webrtc-pc (2 discussions, 4 comments)
+  2 discussions active:
+  - WebRTC Protocol Discussion (by alice-developer)
+    https://github.com/w3c/webrtc-pc/discussions/2850 [enhancement] [needs-review] 
+  - Question about ICE candidate gathering (by david-student)
+    https://github.com/w3c/webrtc-pc/discussions/2851 [question] 
+
+
+  Discussions with comments:
+  - WebRTC Protocol Discussion (3 by alice-developer, bob-reviewer, charlie-contributor)
+    https://github.com/w3c/webrtc-pc/discussions/2850
+  - Question about ICE candidate gathering (1 by expert-maintainer)
+    https://github.com/w3c/webrtc-pc/discussions/2851
+
 
 
 
 Repositories tracked by this digest:
 -----------------------------------
 * https://github.com/w3c/webrtc-pc
-* https://github.com/foo/bar
 
 
 

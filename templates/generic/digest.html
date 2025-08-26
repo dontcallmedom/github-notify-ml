@@ -99,6 +99,17 @@ summary {
 {{/activeprrepos}}
 {{/activeprs}}
 
+{{#activediscussions}}<h2>Discussions</h2>
+{{#activediscussionrepos}}
+<h3>{{name}} (+{{newdiscussions.count}})</h3>
+{{#newdiscussions.count}}  <p class="new">{{.}} new discussions:</p>
+  <ul>{{#newdiscussions.list}}
+  <li><a href="{{url}}">{{title}}</a> (by {{author.login}})</li>
+  {{/newdiscussions.list}}</ul>
+{{/newdiscussions.count}}
+{{/activediscussionrepos}}
+{{/activediscussions}}
+
   <details>
     <summary>Repositories tracked by this digest:</summary>
 <ul class="repos">
