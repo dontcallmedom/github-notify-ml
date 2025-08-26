@@ -1,0 +1,105 @@
+{
+  "data": {
+    "repository": {
+      "hasDiscussionsEnabled": true,
+      "discussions": {
+        "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOnYyOpHOEj4HSw=="
+        },
+        "nodes": [
+          {
+            "id": "D_kwDOGvjz5M4ANMbH",
+            "title": "WebRTC Protocol Discussion",
+            "url": "https://github.com/w3c/webrtc-pc/discussions/2850",
+            "author": {
+              "login": "alice-developer"
+            },
+            "createdAt": "2016-11-15T12:30:00Z",
+            "updatedAt": "2016-11-15T14:45:00Z",
+            "comments": {
+              "totalCount": 3,
+              "nodes": [
+                {
+                  "author": {
+                    "login": "bob-reviewer"
+                  },
+                  "bodyText": "This is a very interesting proposal. Have you considered the backwards compatibility implications?",
+                  "createdAt": "2016-11-15T13:15:00Z",
+                  "updatedAt": "2016-11-15T13:15:00Z"
+                },
+                {
+                  "author": {
+                    "login": "charlie-contributor"
+                  },
+                  "bodyText": "I agree with Bob. Also, what about the security considerations mentioned in RFC 8831?",
+                  "createdAt": "2016-11-15T14:00:00Z",
+                  "updatedAt": "2016-11-15T14:00:00Z"
+                },
+                {
+                  "author": {
+                    "login": "alice-developer"
+                  },
+                  "bodyText": "Great points! I'll address both concerns in the next iteration.",
+                  "createdAt": "2016-11-15T14:45:00Z",
+                  "updatedAt": "2016-11-15T14:45:00Z"
+                }
+              ]
+            },
+            "answerChosenAt": null,
+            "category": {
+              "name": "Ideas"
+            },
+            "labels": {
+              "nodes": [
+                {
+                  "name": "enhancement",
+                  "color": "a2eeef"
+                },
+                {
+                  "name": "needs-review",
+                  "color": "fbca04"
+                }
+              ]
+            }
+          },
+          {
+            "id": "D_kwDOGvjz5M4ANMbI",
+            "title": "Question about ICE candidate gathering",
+            "url": "https://github.com/w3c/webrtc-pc/discussions/2851",
+            "author": {
+              "login": "david-student"
+            },
+            "createdAt": "2016-11-14T09:20:00Z",
+            "updatedAt": "2016-11-15T16:30:00Z",
+            "comments": {
+              "totalCount": 1,
+              "nodes": [
+                {
+                  "author": {
+                    "login": "expert-maintainer"
+                  },
+                  "bodyText": "Good question! The ICE candidate gathering process is defined in section 4.1.3.1 of the spec. Here's how it works...",
+                  "createdAt": "2016-11-15T16:30:00Z",
+                  "updatedAt": "2016-11-15T16:30:00Z"
+                }
+              ]
+            },
+            "answerChosenAt": "2016-11-15T16:30:00Z",
+            "category": {
+              "name": "Q&A"
+            },
+            "labels": {
+              "nodes": [
+                {
+                  "name": "question",
+                  "color": "d876e3"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -145,6 +145,138 @@ def getRepoData(repo, token):
     return githubListReq.json()
 
 
+def queryGithubDiscussions(repo, token, until, cursor=None):
+    """
+    Query GitHub discussions using GraphQL API with pagination support.
+    Returns discussions created or updated after the 'until' date.
+    """
+    url = "https://api.github.com/graphql"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    
+    owner, name = repo.split("/")
+    after_clause = f', after: "{cursor}"' if cursor else ""
+    
+    query = f"""
+    query {{
+      repository(owner: "{owner}", name: "{name}") {{
+        hasDiscussionsEnabled
+        discussions(first: 100{after_clause}, orderBy: {{field: UPDATED_AT, direction: DESC}}) {{
+          pageInfo {{
+            hasNextPage
+            endCursor
+          }}
+          nodes {{
+            id
+            title
+            url
+            author {{
+              login
+            }}
+            createdAt
+            updatedAt
+            comments(first: 10) {{
+              totalCount
+              nodes {{
+                author {{
+                  login
+                }}
+                bodyText
+                createdAt
+                updatedAt
+              }}
+            }}
+            answerChosenAt
+            category {{
+              name
+            }}
+            labels(first: 10) {{
+              nodes {{
+                name
+                color
+              }}
+            }}
+          }}
+        }}
+      }}
+    }}
+    """
+    
+    response = requests.post(url, headers=headers, json={"query": query})
+    
+    if response.status_code != 200:
+        return {"error": f"GraphQL request failed with status {response.status_code}"}
+    
+    data = response.json()
+    if "errors" in data:
+        return {"error": f"GraphQL errors: {data['errors']}"}
+    
+    return data
+
+
+def listGithubDiscussions(repo, token, until):
+    """
+    Fetch GitHub discussions with pagination, filtering by date.
+    """
+    discussions = []
+    cursor = None
+    until_iso = until.strftime("%Y-%m-%dT%H:%M:%SZ")
+    
+    while True:
+        result = queryGithubDiscussions(repo, token, until, cursor)
+        
+        if "error" in result:
+            return {"discussions": [], "error": result["error"]}
+        
+        repo_data = result.get("data", {}).get("repository", {})
+        
+        # Check if discussions are enabled for this repository
+        if not repo_data.get("hasDiscussionsEnabled", False):
+            return {"discussions": [], "hasDiscussionsEnabled": False}
+        
+        discussions_data = repo_data.get("discussions", {})
+        nodes = discussions_data.get("nodes", [])
+        
+        # Filter discussions by date - include if created or updated after 'until'
+        for discussion in nodes:
+            created_at = discussion.get("createdAt", "")
+            updated_at = discussion.get("updatedAt", "")
+            
+            if created_at >= until_iso or updated_at >= until_iso:
+                # Add text colors for labels (similar to existing label handling)
+                for label in discussion.get("labels", {}).get("nodes", []):
+                    bg_color = label.get("color", "000000")
+                    bg_rgb = int(bg_color, 16)
+                    bg_r = (bg_rgb >> 16) & 0xFF
+                    bg_g = (bg_rgb >> 8) & 0xFF
+                    bg_b = (bg_rgb >> 0) & 0xFF
+                    luma = 0.2126 * bg_r + 0.7152 * bg_g + 0.0722 * bg_b  # ITU-R BT.709
+                    if luma < 128:
+                        label["text_color"] = "ffffff"
+                    else:
+                        label["text_color"] = "000000"
+                
+                discussions.append(discussion)
+            elif updated_at < until_iso:
+                # Since discussions are ordered by updated_at DESC, we can stop here
+                return {"discussions": discussions, "hasDiscussionsEnabled": True}
+        
+        # Check if we need to fetch more pages
+        page_info = discussions_data.get("pageInfo", {})
+        if not page_info.get("hasNextPage", False):
+            break
+            
+        cursor = page_info.get("endCursor")
+        
+        # Safety check to prevent infinite loops
+        if not cursor:
+            break
+    
+    return {"discussions": discussions, "hasDiscussionsEnabled": True}
+
+
 def navigateGithubList(url, token, until, cumul=[]):
     headers = {}
     headers["Authorization"] = "token %s" % token
@@ -186,7 +318,7 @@ def andify(l):
     return [{"name": x, "last": i == len(l) - 1} for i, x in enumerate(sorted(l))]
 
 
-def extractDigestInfo(events, eventFilter=None):
+def extractDigestInfo(events, eventFilter=None, discussions=None):
     def listify(l):
         return {"count": len(l), "list": l}
 
@@ -235,6 +367,37 @@ def extractDigestInfo(events, eventFilter=None):
         commentedissues[number]["commentors"] = andify(
             commentedissues[number]["commentors"]
         )
+    
+    # Process discussions data
+    discussion_list = []
+    discussion_comments = []
+    if discussions and discussions.get("discussions"):
+        for discussion in discussions["discussions"]:
+            # Extract basic discussion info
+            disc_data = {
+                "id": discussion.get("id"),
+                "title": discussion.get("title"),
+                "url": discussion.get("url"),
+                "author": discussion.get("author", {}).get("login", "unknown"),
+                "createdAt": discussion.get("createdAt"),
+                "updatedAt": discussion.get("updatedAt"),
+                "category": discussion.get("category", {}).get("name", ""),
+                "labels": discussion.get("labels", {}).get("nodes", []),
+                "answerChosenAt": discussion.get("answerChosenAt"),
+                "isAnswered": bool(discussion.get("answerChosenAt"))
+            }
+            discussion_list.append(disc_data)
+            
+            # Process discussion comments
+            comments = discussion.get("comments", {}).get("nodes", [])
+            if comments:
+                disc_comments = {
+                    "discussion": disc_data,
+                    "comments": comments,
+                    "commentscount": discussion.get("comments", {}).get("totalCount", len(comments)),
+                    "commentors": andify(list(set([c.get("author", {}).get("login", "unknown") for c in comments if c.get("author")])))
+                }
+                discussion_comments.append(disc_comments)
     data["errors"] = listify(errors)
     data["newissues"] = listify(newissues)
     data["closedissues"] = listify(closedissues)
@@ -264,6 +427,13 @@ def extractDigestInfo(events, eventFilter=None):
     data["activepr"] = (
         data["prcommentscount"] > 0 or len(newpr) > 0 or len(mergedpr) > 0
     )
+    
+    # Add discussions data
+    data["discussions"] = listify(discussion_list)
+    data["discussioncomments"] = listify(discussion_comments)
+    data["discussioncommentscount"] = sum(d["commentscount"] for d in discussion_comments)
+    data["activediscussion"] = len(discussion_list) > 0 or data["discussioncommentscount"] > 0
+    
     return data
 
 # this preserves order which list(set()) wouldn't
@@ -337,6 +507,7 @@ def sendDigest(config, period="daily"):
 
             events["activeissuerepos"] = []
             events["activeprrepos"] = []
+            events["activediscussionrepos"] = []
             events["repostatus"] = []
             events["period"] = duration.capitalize()
 
@@ -370,8 +541,13 @@ def sendDigest(config, period="daily"):
                 for r in s["repos"]:
                     eventFilters[r] = s.get("eventFilter", None)
             for repo in repos:
+                # Fetch discussions data if available
+                discussions_data = None
+                if token:
+                    discussions_data = listGithubDiscussions(repo, token, until)
+                
                 data = extractDigestInfo(
-                    listGithubEvents(repo, token, until), eventFilters[repo]
+                    listGithubEvents(repo, token, until), eventFilters[repo], discussions_data
                 )
                 data["repo"] = getRepoData(repo, token)
                 data["name"] = repo
@@ -384,6 +560,8 @@ def sendDigest(config, period="daily"):
                         events["activeissuerepos"].append(data)
                     if data["activepr"]:
                         events["activeprrepos"].append(data)
+                    if data["activediscussion"]:
+                        events["activediscussionrepos"].append(data)
                 events["filtered"] = d.get("eventFilter", None)
                 events["filteredlabels"] = (
                     len(d.get("eventFilter", {}).get("label", [])) > 0
@@ -398,10 +576,12 @@ def sendDigest(config, period="daily"):
                 events["topic"] = d.get("topic", None)
             events["activeissues"] = len(events["activeissuerepos"])
             events["activeprs"] = len(events["activeprrepos"])
+            events["activediscussions"] = len(events["activediscussionrepos"])
             events["summary"] = len(events["repostatus"])
             if (
                 events["activeissues"] > 0
                 or events["activeprs"] > 0
+                or events["activediscussions"] > 0
                 or events["summary"] > 0
             ):
                 templates, error = loadTemplates(

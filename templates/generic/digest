@@ -67,6 +67,27 @@
 {{/activeprrepos}}
 {{/activeprs}}
 
+{{#activediscussions}}Discussions
+-----------
+{{#activediscussionrepos}}
+* {{name}} ({{discussions.count}} discussions, {{discussioncommentscount}} comments)
+{{#discussions.count}}  {{.}} discussions active:
+{{#discussions.list}}
+  - {{{title}}} (by {{author}}){{#isAnswered}} ✓ Answered{{/isAnswered}}
+    {{{url}}} {{#category}}[{{{category}}}]{{/category}} {{#labels}}[{{name}}] {{/labels}}
+{{/discussions.list}}
+
+{{/discussions.count}}
+{{#discussioncomments.count}}  Discussions with comments:
+{{#discussioncomments.list}}
+  - {{{discussion.title}}} ({{commentscount}} by {{#commentors}}{{name}}{{^last}}, {{/last}}{{/commentors}})
+    {{{discussion.url}}}
+{{/discussioncomments.list}}
+
+{{/discussioncomments.count}}
+{{/activediscussionrepos}}
+{{/activediscussions}}
+
 Repositories tracked by this digest:
 -----------------------------------
 {{#repos}}
