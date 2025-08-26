@@ -73,7 +73,7 @@
 * {{name}} ({{discussions.count}} discussions, {{discussioncommentscount}} comments)
 {{#discussions.count}}  {{.}} discussions active:
 {{#discussions.list}}
-  - {{{title}}} (by {{author}}){{#isAnswered}} ✓ Answered{{/isAnswered}}
+  - {{{title}}} (by {{author}})
     {{{url}}} {{#labels}}[{{name}}] {{/labels}}
 {{/discussions.list}}
 
