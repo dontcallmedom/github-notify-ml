@@ -183,14 +183,9 @@ def queryGithubDiscussions(repo, token, until, cursor=None):
                 author {{
                   login
                 }}
-                bodyText
                 createdAt
                 updatedAt
               }}
-            }}
-            answerChosenAt
-            category {{
-              name
             }}
             labels(first: 10) {{
               nodes {{
@@ -381,10 +376,7 @@ def extractDigestInfo(events, eventFilter=None, discussions=None):
                 "author": discussion.get("author", {}).get("login", "unknown"),
                 "createdAt": discussion.get("createdAt"),
                 "updatedAt": discussion.get("updatedAt"),
-                "category": discussion.get("category", {}).get("name", ""),
                 "labels": discussion.get("labels", {}).get("nodes", []),
-                "answerChosenAt": discussion.get("answerChosenAt"),
-                "isAnswered": bool(discussion.get("answerChosenAt"))
             }
             discussion_list.append(disc_data)
             

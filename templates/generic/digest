@@ -74,7 +74,7 @@
 {{#discussions.count}}  {{.}} discussions active:
 {{#discussions.list}}
   - {{{title}}} (by {{author}}){{#isAnswered}} ✓ Answered{{/isAnswered}}
-    {{{url}}} {{#category}}[{{{category}}}]{{/category}} {{#labels}}[{{name}}] {{/labels}}
+    {{{url}}} {{#labels}}[{{name}}] {{/labels}}
 {{/discussions.list}}
 
 {{/discussions.count}}
