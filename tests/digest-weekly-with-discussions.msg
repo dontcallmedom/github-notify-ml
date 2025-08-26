@@ -96,9 +96,9 @@ Discussions
 * w3c/webrtc-pc (2 discussions, 4 comments)
   2 discussions active:
   - WebRTC Protocol Discussion (by alice-developer)
-    https://github.com/w3c/webrtc-pc/discussions/2850 [Ideas] [enhancement] [needs-review] 
-  - Question about ICE candidate gathering (by david-student) ✓ Answered
-    https://github.com/w3c/webrtc-pc/discussions/2851 [Q&A] [question] 
+    https://github.com/w3c/webrtc-pc/discussions/2850 [enhancement] [needs-review] 
+  - Question about ICE candidate gathering (by david-student)
+    https://github.com/w3c/webrtc-pc/discussions/2851 [question] 
 
 
   Discussions with comments:
