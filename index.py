@@ -211,6 +211,16 @@ def extractDigestInfo(events, eventFilter=None):
     newissues = list(filter(isNew, list(filter(isIssue, filtered_events))))
     closedissues = list(filter(isClosed, list(filter(isIssue, filtered_events))))
     newpr = list(filter(isNew, list(filter(isPR, filtered_events))))
+    # as of October 2025, the GitHub Events API doesn't include
+    # title and html_url in PullRequestEvents
+    # as fallback, calculate html_url manually
+    for pr in newpr:
+        html_url = pr["payload"]["pull_request"].get("html_url", None)
+        if not html_url:
+            import sys
+            html_url = pr["payload"]["pull_request"]["url"].replace("/api.", "/").replace("/repos/", "/").replace("/pulls/","/pull/")
+            pr["payload"]["pull_request"]["html_url"] = html_url
+
     mergedpr = list(
         filter(isMerged, list(filter(isClosed, list(filter(isPR, filtered_events)))))
     )
