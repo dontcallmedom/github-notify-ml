@@ -45,7 +45,7 @@
 * {{name}} (+{{newpr.count}}/-{{mergedpr.count}}/💬{{prcommentscount}})
 {{#newpr.count}}  {{.}} pull requests submitted:
 {{#newpr.list}}
-  - {{{payload.pull_request.title}}} (by {{actor.display_login}})
+  - {{{payload.pull_request.number}}} {{{payload.pull_request.title}}} (by {{actor.display_login}})
     {{{payload.pull_request.html_url}}} {{#payload.pull_request.labels}}[{{name}}] {{/payload.pull_request.labels}}
 {{/newpr.list}}
 

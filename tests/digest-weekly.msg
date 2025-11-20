@@ -50,21 +50,21 @@ Pull requests
 -------------
 * w3c/webrtc-pc (+8/-1/💬10)
   8 pull requests submitted:
-  - Revert "Respec now uses yarn instead of npm" (by vivienlacourba)
+  - 948 Revert "Respec now uses yarn instead of npm" (by vivienlacourba)
     https://github.com/w3c/webrtc-pc/pull/948 
-  - Splitting transceiver direction into "direction" and "currentDirection". (by taylor-b)
+  - 946 Splitting transceiver direction into "direction" and "currentDirection". (by taylor-b)
     https://github.com/w3c/webrtc-pc/pull/946 
-  - Effect of setting sender.track to null (by aboba)
+  - 944 Effect of setting sender.track to null (by aboba)
     https://github.com/w3c/webrtc-pc/pull/944 
-  - Use of "stopped" in insertDTMF and replaceTrack (by aboba)
+  - 940  (by aboba)
     https://github.com/w3c/webrtc-pc/pull/940 
-  - Removed "stopped" from removeTrack (by aboba)
+  - 939 Removed "stopped" from removeTrack (by aboba)
     https://github.com/w3c/webrtc-pc/pull/939 
-  - What happens when setDirection() is called (by aboba)
+  - 938 What happens when setDirection() is called (by aboba)
     https://github.com/w3c/webrtc-pc/pull/938 
-  - What happens when transceiver.stop() is called (by aboba)
+  - 937 What happens when transceiver.stop() is called (by aboba)
     https://github.com/w3c/webrtc-pc/pull/937 
-  - Remove Issue 1: Current and Pending SDP (by aboba)
+  - 936 Remove Issue 1: Current and Pending SDP (by aboba)
     https://github.com/w3c/webrtc-pc/pull/936 
 
 

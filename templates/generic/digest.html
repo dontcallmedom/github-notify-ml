@@ -80,7 +80,7 @@ summary {
 <h3>{{name}} (+{{newpr.count}}/-{{mergedpr.count}}/💬{{prcommentscount}})</h3>
 {{#newpr.count}}  <p class="new">{{.}} pull requests submitted:</p>
   <ul>{{#newpr.list}}
-  <li>#{{payload.pull_request.number}} <a href="{{payload.pull_request.html_url}}">{{payload.pull_request.title}}</a> (by {{actor.display_login}}) {{#payload.pull_request.labels}}<span class="label" style="background-color: #{{color}}; color: #{{text_color}}">{{name}}</span> {{/payload.pull_request.labels}}</li>
+  <li><a href="{{payload.pull_request.html_url}}">#{{payload.pull_request.number}} {{payload.pull_request.title}}</a> (by {{actor.display_login}}) {{#payload.pull_request.labels}}<span class="label" style="background-color: #{{color}}; color: #{{text_color}}">{{name}}</span> {{/payload.pull_request.labels}}</li>
   {{/newpr.list}}</ul>
 {{/newpr.count}}
 
