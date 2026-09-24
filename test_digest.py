@@ -82,6 +82,23 @@ class SendEmailGithubTests(unittest.TestCase):
             body=self.read_file("tests/rec-repos.json"),
             content_type="application/json",
         )
+        # Add GraphQL discussions endpoint mocks
+        responses.add(
+            responses.POST,
+            "https://api.github.com/graphql",
+            json={
+                "data": {
+                    "repository": {
+                        "hasDiscussionsEnabled": True,
+                        "discussions": {
+                            "pageInfo": {"hasNextPage": False, "endCursor": None},
+                            "nodes": []
+                        }
+                    }
+                }
+            },
+            content_type="application/json",
+        )
 
     def parseReferenceMessage():
         return headers, body
@@ -105,7 +122,7 @@ class SendEmailGithubTests(unittest.TestCase):
             ],
             mock_smtp.return_value.__enter__.return_value.sendmail,
         )
-        self.assertEqual(len(responses.calls), 6)
+        self.assertEqual(len(responses.calls), 13)
 
     @responses.activate
     @patch("smtplib.SMTP", autospec=True)
@@ -113,12 +130,39 @@ class SendEmailGithubTests(unittest.TestCase):
         self.do_digest(
             "quarterly", [{"dom@localhost": "tests/summary-quarterly.msg"}], mock_smtp.return_value.__enter__.return_value.sendmail
         )
-        self.assertEqual(len(responses.calls), 2)
+        self.assertEqual(len(responses.calls), 3)
 
-    def do_digest(self, period, refs, mock_smtp):
+    @responses.activate
+    @patch("smtplib.SMTP", autospec=True)
+    def test_weekly_digest_with_discussions(self, mock_smtp):
+        # Override GraphQL response with discussions data
+        responses.replace(
+            responses.POST,
+            "https://api.github.com/graphql",
+            body=self.read_file("tests/repo1-discussions-comprehensive.json"),
+            content_type="application/json",
+        )
+        
+        # Use the discussions-specific MLS config
+        config_with_discussions = dict(config)
+        config_with_discussions["mls"] = "tests/mls-discussions.json"
+        
+        self.do_digest(
+            "Wednesday",
+            [{"dom@localhost": "tests/digest-weekly-with-discussions.msg"}],
+            mock_smtp.return_value.__enter__.return_value.sendmail,
+            config_with_discussions
+        )
+        
+        # Check that GraphQL was called for discussions
+        graphql_calls = [call for call in responses.calls if call.request.url == "https://api.github.com/graphql"]
+        self.assertTrue(len(graphql_calls) > 0)
+
+    def do_digest(self, period, refs, mock_smtp, config_override=None):
         import email
 
-        sendDigest(config, period)
+        digest_config = config_override if config_override else config
+        sendDigest(digest_config, period)
         self.assertEqual(mock_smtp.call_count, len(refs))
         counter = 0
         import pprint
