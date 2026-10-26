@@ -76,6 +76,13 @@ class SendEmailGithubTests(unittest.TestCase):
             body=self.read_file("tests/repo2-events-1.json"),
             content_type="application/json",
         )
+        # PullRequestEvent payloads lack the title, so the digest fetches the PR
+        responses.add(
+            responses.GET,
+            "https://api.github.com/repos/w3c/webrtc-pc/pulls/940",
+            body='{"title": "Use of \\"stopped\\" in insertDTMF and replaceTrack", "html_url": "https://github.com/w3c/webrtc-pc/pull/940"}',
+            content_type="application/json",
+        )
         responses.add(
             responses.GET,
             "https://w3c.github.io/validate-repos/rec-track-repos.json",
@@ -105,7 +112,8 @@ class SendEmailGithubTests(unittest.TestCase):
             ],
             mock_smtp.return_value.__enter__.return_value.sendmail,
         )
-        self.assertEqual(len(responses.calls), 6)
+        # 6 repo/event requests + 1 pull request fetch (cached across digests)
+        self.assertEqual(len(responses.calls), 7)
 
     @responses.activate
     @patch("smtplib.SMTP", autospec=True)

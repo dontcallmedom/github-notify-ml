@@ -1,31 +1,42 @@
 #!/usr/bin/env python3
 # started from
 # https://github.com/razius/flask-github-webhook/blob/master/index.py
-import io
+import email.charset
+import ipaddress
+import json
+import logging
 import os
 import re
-import sys
-import json
-import re
-import subprocess
-import requests
-import requests_cache
-import ipaddress
 import smtplib
 import ssl
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.header import Header
-from email.utils import formataddr, make_msgid
+import sys
 from email.generator import Generator
-import email.charset
-from io import StringIO
+from email.header import Header
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import formataddr, make_msgid
 from functools import reduce
+from io import StringIO
+
+import requests
+import requests_cache
 
 email.charset.add_charset("utf-8", email.charset.QP, email.charset.QP, "utf-8")
 
 # avoid re-requesting the same content in a given run
 requests_cache.install_cache(backend='memory')
+
+logger = logging.getLogger(__name__)
+
+def httpGet(url, **kwargs):
+    response = requests.get(url, **kwargs)
+    logger.info(
+        "GET %s -> %s (%s)",
+        url,
+        response.status_code,
+        "cached" if getattr(response, "from_cache", False) else f"{int(response.elapsed.total_seconds() * 1000)}ms",
+    )
+    return response
 
 class InvalidConfiguration(Exception):
     pass
@@ -51,13 +62,13 @@ def validate_repos(config):
                     or os.path.isfile(specific_template)
                 ):
                     raise InvalidConfiguration(
-                        "No template matching event %s defined in %s in %s (looked at %s and %s)"
-                        % (e, config["mls"], repo, generic_template, specific_template)
+                        f"No template matching event {e} defined in {config['mls']} in {repo}"
+                        f" (looked at {generic_template} and {specific_template})"
                     )
 
 
 def get_mls(config):
-    with io.open(config["mls"], "r") as filehandle:
+    with open(config["mls"]) as filehandle:
         mls = filehandle.read()
     return json.loads(mls)
 
@@ -77,12 +88,13 @@ def event_id(event, payload):
 
 def event_timestamp(event, payload):
     def timestamp(date):
-        from dateutil import parser
         import calendar
+
+        from dateutil import parser
 
         try:
             return calendar.timegm(parser.parse(date).utctimetuple())
-        except:
+        except (ValueError, OverflowError, TypeError):
             return date
 
     ts = None
@@ -123,37 +135,42 @@ def refevent(event, payload, target, oauth_token):
         "pull_request_review_comment.created",
     ]:
         return ("pull_request.opened", payload["pull_request"]["id"])
-    elif target == "pull_request" and event == "issue_comment.created":
-        if oauth_token:
-            headers = {}
-            headers["Authorization"] = "token %s" % (oauth_token)
-            pr_id = requests.get(
-                payload["issue"]["pull_request"]["url"], headers=headers
-            ).json()["id"]
-            if pr_id:
-                return ("pull_request.opened", pr_id)
+    elif target == "pull_request" and event == "issue_comment.created" and oauth_token:
+        headers = {}
+        headers["Authorization"] = f"token {oauth_token}"
+        pr_id = httpGet(
+            payload["issue"]["pull_request"]["url"], headers=headers
+        ).json()["id"]
+        if pr_id:
+            return ("pull_request.opened", pr_id)
     return (None, None)
 
 
 def getRepoData(repo, token):
-    url = "https://api.github.com/repos/%s" % repo
+    url = f"https://api.github.com/repos/{repo}"
     headers = {}
-    headers["Authorization"] = "token %s" % token
-    githubListReq = requests.get(url, headers=headers)
+    headers["Authorization"] = f"token {token}"
+    githubListReq = httpGet(url, headers=headers)
     if githubListReq.status_code == 404:
-        return [{"error": "Repo %s yields 404 error" % repo}]
+        return [{"error": f"Repo {repo} yields 404 error"}]
     return githubListReq.json()
 
 
-def navigateGithubList(url, token, until, cumul=[]):
+def navigateGithubList(url, token, until, cumul=None):
+    if cumul is None:
+        cumul = []
     headers = {}
-    headers["Authorization"] = "token %s" % token
-    githubListReq = requests.get(url, headers=headers)
-    if githubListReq.status_code == 404:
+    headers["Authorization"] = f"token {token}"
+    githubListReq = httpGet(url, headers=headers)
+    if githubListReq.status_code != 200:
+        logger.warning(
+            "GitHub API %s yields %s: %s",
+            url, githubListReq.status_code, githubListReq.text[:500]
+        )
         return [
             {
-                "error": "Repo %s yields 404 error"
-                % url.split("https://api.github.com/repos/")[1]
+                "error": f"Repo {url.split('https://api.github.com/repos/')[1]}"
+                f" yields {githubListReq.status_code} error"
             }
         ]
     pageList = githubListReq.json()
@@ -175,7 +192,7 @@ def navigateGithubList(url, token, until, cumul=[]):
 
 
 def listGithubEvents(repo, token, until):
-    baseUrl = "https://api.github.com/repos/%s/" % repo
+    baseUrl = f"https://api.github.com/repos/{repo}/"
     events = {}
     events["repo"] = navigateGithubList(baseUrl + "events", token, until)
     # events["issues"] = navigateGithubList(baseUrl + "issues/events", token, until)
@@ -186,7 +203,7 @@ def andify(l):
     return [{"name": x, "last": i == len(l) - 1} for i, x in enumerate(sorted(l))]
 
 
-def extractDigestInfo(events, eventFilter=None):
+def extractDigestInfo(events, eventFilter=None, token=None):
     def listify(l):
         return {"count": len(l), "list": l}
 
@@ -213,11 +230,19 @@ def extractDigestInfo(events, eventFilter=None):
     newpr = list(filter(isNew, list(filter(isPR, filtered_events))))
     # as of October 2025, the GitHub Events API doesn't include
     # title and html_url in PullRequestEvents
-    # as fallback, calculate html_url manually
+    # fetch the full pull request, and as fallback calculate html_url manually
     for pr in newpr:
-        html_url = pr["payload"]["pull_request"].get("html_url", None)
+        pull = pr["payload"]["pull_request"]
+        if not pull.get("title") and pull.get("url"):
+            headers = {"Authorization": f"token {token}"} if token else {}
+            try:
+                details = httpGet(pull["url"], headers=headers)
+                if details.status_code == 200:
+                    pull.update(details.json())
+            except (requests.RequestException, ValueError) as why:
+                logger.warning("Could not fetch pull request %s: %s", pull["url"], why)
+        html_url = pull.get("html_url", None)
         if not html_url:
-            import sys
             html_url = pr["payload"]["pull_request"]["url"].replace("/api.", "/").replace("/repos/", "/").replace("/pulls/","/pull/")
             pr["payload"]["pull_request"]["html_url"] = html_url
 
@@ -241,10 +266,8 @@ def extractDigestInfo(events, eventFilter=None):
             commentedissues[number] = issue
         commentedissues[number]["commentscount"] += 1
         commentedissues[number]["commentors"].add(comment["actor"]["display_login"])
-    for number, issue in commentedissues.items():
-        commentedissues[number]["commentors"] = andify(
-            commentedissues[number]["commentors"]
-        )
+    for issue in commentedissues.values():
+        issue["commentors"] = andify(issue["commentors"])
     data["errors"] = listify(errors)
     data["newissues"] = listify(newissues)
     data["closedissues"] = listify(closedissues)
@@ -288,12 +311,11 @@ def getRepoList(source):
         repos = source["repos"]
     if ("repoList" in source):
         try:
-            repolist = requests.get(source["repoList"]).json()
+            repolist = httpGet(source["repoList"]).json()
             # ensure unicity
             repos = uniq(repos + repolist)
-        except:
-            pass
-            # TODO: report error somehow?
+        except (requests.RequestException, ValueError, TypeError) as why:
+            logger.warning("Could not load repoList %s: %s", source["repoList"], why)
     return repos
 
 def sendDigest(config, period="daily"):
@@ -325,11 +347,11 @@ def sendDigest(config, period="daily"):
     digests = {}
     for (ml, target) in mls.items():
         if (
-            "digest:%s" % period.lower() in target
-            or "summary:%s" % period.lower() in target
+            f"digest:{period.lower()}" in target
+            or f"summary:{period.lower()}" in target
         ):
             digests[ml] = target.get(
-                "digest:%s" % period.lower(), target.get("summary:%s" % period.lower())
+                f"digest:{period.lower()}", target.get(f"summary:{period.lower()}")
             )
             # we accept both list of digests or single digest in the configuration
             if not isinstance(digests[ml], list):
@@ -337,7 +359,7 @@ def sendDigest(config, period="daily"):
             # Marking digests that are summary
             # since we need them to show content even if there was no recent
             # activity
-            if "summary:%s" % period.lower() in target:
+            if f"summary:{period.lower()}" in target:
                 digests[ml] = [dict(d, summary=True) for d in digests[ml]]
     for (ml, digest) in digests.items():
         for d in digest:
@@ -381,7 +403,7 @@ def sendDigest(config, period="daily"):
                     eventFilters[r] = s.get("eventFilter", None)
             for repo in repos:
                 data = extractDigestInfo(
-                    listGithubEvents(repo, token, until), eventFilters[repo]
+                    listGithubEvents(repo, token, until), eventFilters[repo], token
                 )
                 data["repo"] = getRepoData(repo, token)
                 data["name"] = repo
@@ -414,16 +436,22 @@ def sendDigest(config, period="daily"):
                 or events["activeprs"] > 0
                 or events["summary"] > 0
             ):
-                templates, error = loadTemplates(
+                templates, _ = loadTemplates(
                     "digest", config["TEMPLATES_DIR"], "/mls/" + ml + "/", duration
                 )
                 if not len(templates):
                     raise InvalidConfiguration(
-                        "No template for %s digest targeted at %s" % (duration, ml)
+                        f"No template for {duration} digest targeted at {ml}"
                     )
                 from_addr = config.get("email", {}).get("from", config["EMAIL_FROM"])
                 parts, subject = mailFromTemplate(templates, events, config.get("SIGNATURE"))
                 to = ml.split(",")
+                if envFlag(os.environ, "DEBUG"):
+                    logger.info(
+                        "DEBUG set, not sending digest\nsender: %s\nfrom: %s\nto: %s\nsubject: %s\nbody:\n\n%s",
+                        config["DIGEST_SENDER"], from_addr, to, subject, parts[0]["body"]
+                    )
+                    continue
                 sendMail(
                     config,
                     parts,
@@ -491,7 +519,7 @@ def w3cRequest(config, postbody):
 
 def filter_labeled_event(eventFilter, event):
     labels = eventFilter.get("label", None)
-    if labels and not type(labels) == list:
+    if labels and type(labels) != list:
         labels = [labels]
     # not dealing with "notlabel" since it's not clear it makes
     # sense for "labeled" events
@@ -504,7 +532,7 @@ def filter_labeled_issue(eventFilter, issue):
     labels = eventFilter.get("label", None)
     # backwards compat, since initially this took a single string
     # see https://github.com/dontcallmedom/github-notify-ml/issues/22
-    if labels and not type(labels) == list:
+    if labels and type(labels) != list:
         labels = [labels]
     antilabels = eventFilter.get("notlabel", None)
     issue_labels = issue.get("issue", issue.get("pull_request", {})).get("labels", [])
@@ -546,15 +574,15 @@ def githubRequest(config, postbody):
     # Store the IP address blocks that github uses for hook requests.
     headers = {}
     if "GH_OAUTH_TOKEN" in config:
-        headers["Authorization"] = "token %s" % (config["GH_OAUTH_TOKEN"])
-    hook_blocks = requests.get("https://api.github.com/meta", headers=headers).json()[
+        headers["Authorization"] = f"token {config['GH_OAUTH_TOKEN']}"
+    hook_blocks = httpGet("https://api.github.com/meta", headers=headers).json()[
         "hooks"
     ]
     output = ""
 
     # Check if the request is from github.com
     for block in hook_blocks:
-        ip = ipaddress.ip_address("%s" % remote_addr)
+        ip = ipaddress.ip_address(f"{remote_addr}")
         if ipaddress.ip_address(ip) in ipaddress.ip_network(block):
             break  # the remote_addr is within the network range of github
     else:
@@ -590,7 +618,7 @@ def githubRequest(config, postbody):
             regexp = reponame[len("regexp:") :]
             try:
                 return re.match(regexp, formatedRepoName) != None
-            except:
+            except re.error:
                 return False
         else:
             return reponame == formatedRepoName
@@ -603,7 +631,7 @@ def githubRequest(config, postbody):
 
     # Harmonizing how the source of a repo transfer is represtend across orgs /users
     if event == "repository.transferred":
-        payload["from"] = list(payload["changes"]["owner"]["from"].values())[0]["login"]
+        payload["from"] = next(iter(payload["changes"]["owner"]["from"].values()))["login"]
 
     for ml, repos in mls.items():
         for reponame in filter(repoMatch, list(repos.keys())):
@@ -641,11 +669,9 @@ def githubRequest(config, postbody):
                 continue
             parts, subject = mailFromTemplate(templates, payload, config.get("SIGNATURE"))
             frum = repo.get("email", {}).get("from", config["EMAIL_FROM"])
-            msgid = "<%s-%s-%s-%s>" % (
-                event,
-                event_id(event, payload),
-                event_timestamp(event, payload),
-                frum,
+            msgid = (
+                f"<{event}-{event_id(event, payload)}"
+                f"-{event_timestamp(event, payload)}-{frum}>"
             )
             target = (
                 "pull_request"
@@ -658,11 +684,9 @@ def githubRequest(config, postbody):
             )
             inreplyto = None
             if ref_event and ref_id:
-                inreplyto = "<%s-%s-%s-%s>" % (
-                    ref_event,
-                    ref_id,
-                    event_timestamp(ref_event, payload),
-                    frum,
+                inreplyto = (
+                    f"<{ref_event}-{ref_id}"
+                    f"-{event_timestamp(ref_event, payload)}-{frum}>"
                 )
 
             too = repo.get("email", {}).get("to").split(",")
@@ -670,13 +694,13 @@ def githubRequest(config, postbody):
             frum_name = ""
 
             if "GH_OAUTH_TOKEN" in config:
-                headers["Authorization"] = "token %s" % (config["GH_OAUTH_TOKEN"])
-                frum_name = requests.get(
+                headers["Authorization"] = f"token {config['GH_OAUTH_TOKEN']}"
+                frum_name = httpGet(
                     payload["sender"]["url"], headers=headers
                 ).json()["name"]
                 if frum_name == None:
                     frum_name = payload["sender"]["login"]
-                frum_name = "%s via GitHub" % (frum_name)
+                frum_name = f"{frum_name} via GitHub"
             sentMail.append(
                 sendMail(config, parts, frum, frum_name, too, subject, msgid, inreplyto)
             )
@@ -706,24 +730,24 @@ def loadTemplates(name, rootpath, specificpath, optionalpath=""):
         error = None
         template = None
         try:
-            with io.open(
-                rootpath + specificpath + optionalpath + "/%s%s" % (name, extension)
+            with open(
+                f"{rootpath}{specificpath}{optionalpath}/{name}{extension}"
             ) as filehandle:
                 template = filehandle.read()
-        except IOError:
+        except OSError:
             try:
-                with io.open(
-                    rootpath + specificpath + "/%s%s" % (name, extension)
+                with open(
+                    f"{rootpath}{specificpath}/{name}{extension}"
                 ) as filehandle:
                     template = filehandle.read()
-            except IOError:
+            except OSError:
                 try:
-                    with io.open(
-                        rootpath + "/generic/%s%s" % (name, extension)
+                    with open(
+                        f"{rootpath}/generic/{name}{extension}"
                     ) as filehandle:
                         template = filehandle.read()
-                except IOError:
-                    error = {"msg": "no template defined for event %s" % name}
+                except OSError:
+                    error = {"msg": f"no template defined for event {name}"}
         return template, error
 
     template, error = loadFile()
@@ -744,9 +768,9 @@ def mailFromTemplate(templates, payload, signature):
     for template, subtype in zip(templates, formats):
         body = pystache.render(template, payload)
         if subtype == "plain":
-            subject, dummy, body = body.partition("\n")
+            subject, _, body = body.partition("\n")
             if signature:
-                body = body + "\n\n-- \n%s\n" % signature
+                body = body + f"\n\n-- \n{signature}\n"
         parts.append({"body": body, "subtype": subtype})
     return parts, subject
 
@@ -779,43 +803,63 @@ def sendMail(
     g.flatten(msg)
     return _sendMail(config, from_addr, to_addr, subject, m.getvalue())
 
+def envFlag(config, key, default=False):
+    # values come from config.json (JSON booleans) or the environment (strings)
+    value = config.get(key)
+    if value is None or value == "":
+        return default
+    value = str(value).lower()
+    if value not in ("true", "false"):
+        raise InvalidConfiguration(f"{key} must be true or false, got {value!r}")
+    return value == "true"
+
 def _sendMail(config, from_addr, to_addr, subject, message):
-    if "SMTP_SSL" in config:
-        smtp = smtplib.SMTP_SSL
-    else:
-        smtp = smtplib.SMTP
-    timeout = config.get("SMTP_TIMEOUT", 30)
+    # SMTP_SSL: implicit TLS (port 465), opt-in
+    # SMTP_TLS: STARTTLS (port 587), on unless explicitly "false"
+    use_ssl = envFlag(config, "SMTP_SSL")
+    use_starttls = not use_ssl and envFlag(config, "SMTP_TLS", default=True)
+    smtp = smtplib.SMTP_SSL if use_ssl else smtplib.SMTP
+    host, port = config["SMTP_HOST"], config["SMTP_PORT"]
+    timeout = float(config.get("SMTP_TIMEOUT", 30))
+    logger.debug(
+        "SMTP connecting to %s:%s (ssl=%s, starttls=%s)", host, port, use_ssl, use_starttls
+    )
     try:
-        with smtp(config["SMTP_HOST"], port=config["SMTP_PORT"], timeout=timeout) as server:
-            if "SMTP_TLS" in config:
-                server.ehlo()
-                context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-                server.starttls(context=context)
-                server.ehlo()
-            if "SMTP_USERNAME" in config:
-                try:
-                    server.login(config["SMTP_USERNAME"], config["SMTP_PASSWORD"])
-                except smtplib.SMTPException as why:
-                    warn(f"SMTP login failure - {why}")
-                    return {}
-            try:
-                result = server.sendmail(from_addr, to_addr, message)
-            except smtplib.SMTPException as why:
-                warn(f"SMTP sendmail error: {why}")
-                return {}
+        with smtp(host, port=port, timeout=timeout) as server:
+            if use_starttls:
+                server.starttls(context=ssl.create_default_context())
+            if config.get("SMTP_USERNAME"):
+                server.login(config["SMTP_USERNAME"], config["SMTP_PASSWORD"])
+            server.sendmail(from_addr, to_addr, message)
     except smtplib.SMTPConnectError as why:
-        warn(f"SMTP connect error: {why}")
+        logger.error("SMTP connect error to %s:%s: %s", host, port, why)
         return {}
-    except TimeoutError:
-        warn(f"SMTP timeout ({timeout}s)")
+    except smtplib.SMTPException as why:
+        logger.error("SMTP error (%s): %s", type(why).__name__, why)
         return {}
+    except (OSError, TimeoutError) as why:
+        logger.error("SMTP connection to %s:%s failed (%s): %s", host, port, type(why).__name__, why)
+        return {}
+    logger.info("Sent %r from %s to %s", subject, from_addr, to_addr)
     return {"to": to_addr, "subject": subject}
 
-def warn(message):
-    sys.stderr.write(f"WARNING: {message}\n")
+def sendTestEmail(config, to_addr):
+    # same sender and SMTP path as digests, to check delivery end-to-end
+    from_addr = config.get("email", {}).get("from", config["EMAIL_FROM"])
+    return sendMail(
+        config,
+        [{"body": "This is a test email from github-notify-ml.\n", "subtype": "plain"}],
+        from_addr,
+        config.get("DIGEST_SENDER", "github-notify-ml"),
+        [to_addr],
+        "github-notify-ml test email",
+    )
+
+SECRET_KEYS = ("GH_OAUTH_TOKEN", "SMTP_PASSWORD")
 
 def getConfig():
-    config = json.loads(io.open("instance/config.json").read())
+    with open("instance/config.json") as file:
+        config = json.loads(file.read())
     for K in [
         "GH_OAUTH_TOKEN",
         "SMTP_SSL",
@@ -833,9 +877,21 @@ def getConfig():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s %(message)s",
+        level=logging.DEBUG if envFlag(os.environ, "DEBUG") else logging.INFO,
+    )
     config = getConfig()
+    logger.debug(
+        "Loaded config: %s",
+        json.dumps({k: ("***" if k in SECRET_KEYS and v else v) for k, v in config.items()}),
+    )
     if "SCRIPT_NAME" in os.environ:
         print(serveRequest(config, sys.stdin.read()))
+    elif len(sys.argv) > 1 and sys.argv[1] == "test-email":
+        if len(sys.argv) != 3:
+            sys.exit(f"usage: {sys.argv[0]} test-email RECIPIENT")
+        sys.exit(0 if sendTestEmail(config, sys.argv[2]) else 1)
     else:
         period = sys.argv[1] if len(sys.argv) > 1 else None
         sendDigest(config, period)

@@ -56,7 +56,7 @@ Pull requests
     https://github.com/w3c/webrtc-pc/pull/946 
   - 944 Effect of setting sender.track to null (by aboba)
     https://github.com/w3c/webrtc-pc/pull/944 
-  - 940  (by aboba)
+  - 940 Use of "stopped" in insertDTMF and replaceTrack (by aboba)
     https://github.com/w3c/webrtc-pc/pull/940 
   - 939 Removed "stopped" from removeTrack (by aboba)
     https://github.com/w3c/webrtc-pc/pull/939 
